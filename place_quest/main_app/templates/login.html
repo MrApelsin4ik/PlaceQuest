@@ -1,0 +1,372 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login and Registration</title>
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+<style>
+
+body{
+  background-color: #A8A8A8;
+  font-family: 'Roboto', sans-serif;
+}
+
+.container{
+  width: 600px;
+  height: 350px;
+  position: absolute;
+  top:50%;
+  left:50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+}
+.backbox{
+  background-color: #404040;
+  width: 100%;
+  height: 80%;
+  position: absolute;
+  transform: translate(0,-50%);
+  top:50%;
+  display: inline-flex;
+}
+
+.frontbox{
+  background-color: white;
+  border-radius: 20px;
+  height: 100%;
+  width: 50%;
+  z-index: 10;
+  position: absolute;
+  right:0;
+  margin-right: 3%;
+  margin-left: 3%;
+  transition: right .8s ease-in-out;
+}
+
+.moving{
+  right:45%;
+}
+
+.loginMsg, .signupMsg{
+  width: 50%;
+  height: 100%;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+
+.loginMsg .title,
+.signupMsg .title{
+  font-weight: 300;
+  font-size: 23px;
+}
+
+.loginMsg p,
+.signupMsg p {
+  font-weight: 100;
+}
+
+.textcontent{
+  color:white;
+  margin-top:65px;
+  margin-left: 12%;
+}
+
+.loginMsg button,
+.signupMsg button {
+  background-color: #404040;
+  border: 2px solid white;
+  border-radius: 10px;
+  color:white;
+  font-size: 12px;
+  box-sizing: content-box;
+  font-weight: 300;
+  padding:10px;
+  margin-top: 20px;
+}
+
+/* front box content*/
+.login, .signup{
+  padding: 20px;
+  text-align: center;
+}
+
+.login h2,
+.signup h2 {
+  color: #0f93ff;
+  font-size:22px;
+}
+
+.inputbox{
+  margin-top:30px;
+}
+.login input,
+.signup input {
+  display: block;
+  width: 100%;
+  height: 40px;
+  background-color: #f2f2f2;
+  border: none;
+  margin-bottom:20px;
+  font-size: 12px;
+}
+
+.login button,
+.signup button{
+  background-color: #0f93ff;
+  border: none;
+  color:white;
+  font-size: 12px;
+  font-weight: 300;
+  box-sizing: content-box;
+  padding:10px;
+  border-radius: 10px;
+  width: 80px;
+  position: absolute;
+  right:30px;
+  bottom: 30px;
+  cursor: pointer;
+}
+
+/* Fade In & Out*/
+.login p {
+  cursor: pointer;
+  color:#404040;
+  font-size:15px;
+}
+
+.loginMsg, .signupMsg{
+  transition: opacity .8s ease-in-out;
+}
+
+.visibility{
+  opacity: 0;
+}
+
+.hide{
+  display: none;
+}
+.notification {
+  position: fixed;
+  margin-top: 5px;
+  margin-right: 20px;
+  background-color: #ff6347; /* Красный цвет */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+}
+.notification2 {
+  position: fixed;
+  margin-top: 5px;
+  margin-right: 20px;
+  background-color: #ff6347; /* Красный цвет */
+  color: white;
+  padding: 10px 20px;
+  border-radius: 5px;
+  display: none;
+  width:37%
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    width: 90%; /* Изменяем ширину контейнера для мобильных экранов */
+    height: auto; /* Высота будет автоматически подстраиваться */
+    top: initial; /* Отменяем вертикальное позиционирование */
+    left: initial; /* Отменяем горизонтальное позиционирование */
+    transform: none; /* Отменяем смещение */
+    display: block; /* Меняем на блочный элемент для корректного отображения */
+    margin: 0 auto; /* Центрируем по горизонтали */
+  }
+
+  .backbox, .frontbox {
+    width: 100%; /* Меняем ширину боксов на 100% для мобильных экранов */
+    height: auto; /* Высота будет автоматически подстраиваться */
+    position: relative; /* Изменяем позиционирование */
+    transform: none; /* Отменяем смещение */
+    top: initial; /* Отменяем вертикальное смещение */
+    margin: 0 auto; /* Центрируем по горизонтали */
+  }
+
+  .frontbox {
+    margin-top: 20px; /* Добавляем небольшое отступ для лучшего отображения */
+  }
+
+  .loginMsg, .signupMsg {
+    width: 100%; /* Меняем ширину сообщений на 100% для мобильных экранов */
+  }
+
+  .moving {
+    right: initial; /* Отменяем смещение */
+    left: 50%; /* Позиционируем по центру */
+    transform: translateX(-50%); /* Центрируем */
+  }
+
+  .loginMsg, .signupMsg {
+    margin-top: -7px; /* Добавляем отступ для лучшего отображения */
+  }
+
+  .textcontent {
+    margin-top: 20px; /* Добавляем отступ для лучшего отображения */
+    margin-left: 0; /* Обнуляем отступ слева */
+    text-align: center; /* Выравниваем по центру */
+  }
+
+  .login button, .signup button {
+    width: 100%; /* Меняем ширину кнопок на 100% для мобильных экранов */
+    margin-right: 0; /* Обнуляем отступ справа */
+    margin-bottom: 10px; /* Добавляем отступ снизу */
+    position: relative; /* Изменяем позиционирование */
+    right: initial; /* Отменяем смещение */
+    bottom: initial; /* Отменяем смещение */
+    margin-top: 45px;
+  }
+  .notification{
+    width: 70%; /* Или любое другое значение, которое соответствует вашим потребностям */
+
+    margin-top:-10px;
+  }
+  .notification2 {
+    width: 79%; /* Или любое другое значение, которое соответствует вашим потребностям */
+  }
+  .signup button {
+    margin-left: -10px;
+  }
+
+  .login p {
+    margin-top: 20px; /* Добавляем отступ для лучшего отображения */
+  }
+  .loginButton, .signupButton {
+
+   margin-right: 10px; /* Добавляем отступ справа */
+   margin-bottom: 10px; /* Добавляем отступ снизу */
+
+  }
+  .signupButton {
+  margin-top: 80px;
+  width: 90%
+  }
+  /* Добавляем отступ снизу для кнопок switch1 и switch2 */
+  #switch1, #switch2 {
+    margin-bottom: 10px;
+    margin-top: -10px;
+  }
+
+  /* Добавляем отступ справа для кнопок loginButton и signupButton */
+  #loginButton, #signupButton {
+    margin-left: -10px;
+  }
+
+
+}
+
+.show {
+  display: block;
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="backbox">
+    <div class="loginMsg">
+      <div class="textcontent">
+        <p class="title">Нет аккаунта?</p>
+        <button id="switch1">Регистрация</button>
+      </div>
+    </div>
+    <div class="signupMsg visibility">
+      <div class="textcontent">
+        <p class="title">Есть аккаунт?</p>
+        <button id="switch2">Вход</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="frontbox">
+
+<div class="login">
+  <h2>ВХОД</h2>
+
+  <div class="inputbox">
+    <form method="post" action="{% url 'register_and_login' %}">
+      {% csrf_token %}
+      <input type="text" name="loginEmail" placeholder="  Почта">
+      <input type="password" name="loginPassword" placeholder="  Пароль">
+      <div id="errorBox1" class="notification" style="display: none;"></div>
+      <button type="submit" id="loginButton">ВХОД</button>
+    </form>
+  </div>
+</div>
+
+<div class="signup hide">
+  <h2>РЕГИСТРАЦИЯ</h2>
+  <div class="inputbox">
+    <form method="post" action="{% url 'register_and_login' %}">
+      {% csrf_token %}
+      <input type="text" name="signupEmail" placeholder="  Почта">
+      <input type="password" name="signupPassword" placeholder="  Пароль">
+      <div id="errorBox2" class="notification2" style="display: none;"></div>
+      <button type="submit" id="signupButton">Регистрация</button>
+    </form>
+  </div>
+</div>
+
+  </div>
+
+</div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+
+$(document).ready(function(){
+  var $loginMsg = $('.loginMsg'),
+      $login = $('.login'),
+      $signupMsg = $('.signupMsg'),
+      $signup = $('.signup'),
+      $frontbox = $('.frontbox');
+
+
+  $('#switch1').on('click', function() {
+    $loginMsg.toggleClass("visibility");
+    $frontbox.addClass("moving");
+    $signupMsg.toggleClass("visibility");
+    $signup.toggleClass('hide');
+    $login.toggleClass('hide');
+  });
+
+  $('#switch2').on('click', function() {
+    $loginMsg.toggleClass("visibility");
+    $frontbox.removeClass("moving");
+    $signupMsg.toggleClass("visibility");
+    $signup.toggleClass('hide');
+    $login.toggleClass('hide');
+  });
+  $('form').submit(function(e) {
+    e.preventDefault();
+    var form = $(this);
+    $.ajax({
+      type: form.attr('method'),
+      url: form.attr('action'),
+      data: form.serialize(),
+      success: function(response) {
+        if (response.error1) {
+          $('#errorBox1').text(response.error1).show();
+        } else if (response.error2) {
+          $('#errorBox2').text(response.error2).show();
+        } else {
+          // Handle successful login or signup
+          window.location.href = response.redirect_url; // Assuming you're returning a redirect URL upon successful login or signup
+        }
+      }
+    });
+  });
+});
+</script>
+</body>
+</html>
