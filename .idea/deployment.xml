@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="dev@192.168.0.115:23 password (2)" remoteFilesAllowedToDisappearOnAutoupload="false">
     <serverData>
       <paths name="dev@192.168.0.115:23 password">
         <serverdata>
@@ -9,6 +9,14 @@
           </mappings>
         </serverdata>
       </paths>
+      <paths name="dev@192.168.0.115:23 password (2)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/dev/MPIT_site_dir" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
     </serverData>
+    <option name="myAutoUpload" value="ALWAYS" />
   </component>
 </project>
