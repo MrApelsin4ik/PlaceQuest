@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+{% load custom_filters %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ attr.name }}</title>  <!-- Название аттракции -->
+  <style>
+    /* Основные стили для страницы аттракции */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #E8E3D7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    .container {
+      width: 80%;
+      max-width: 900px;
+      background-color: #f9f9f9;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Название аттракции */
+    .attraction-title {
+      font-size: 2.5em;
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Описание аттракции */
+    .attraction-description {
+      font-size: 1.2em;
+      color: #555;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+
+    /* Секция с изображениями */
+    .images-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .image-thumbnail {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Открытое изображение (раскрытие) */
+    .image-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .image-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: transparent;
+      color: white;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    /* Секция файлов (не фото) */
+    .files-section {
+      margin-top: 30px;
+    }
+
+    .file {
+      background-color: #f1f1f1;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-name {
+      font-size: 1.1em;
+      color: #333;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .file-actions button {
+      padding: 8px 12px;
+      background-color: #a1331f;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .file-actions button:hover {
+      background-color: #8B1D1D;
+    }
+
+    /* Кнопка возврата */
+    .back-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #a1331f;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .back-button:hover {
+      background-color: #8B1D1D;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Контейнер для всей страницы -->
+  <div class="container">
+    <!-- Название аттракции -->
+    <div class="attraction-title" id="attraction-name">
+      <h1>{{ attr.name }}</h1>  <!-- Название аттракции -->
+    </div>
+
+    <!-- Описание attr -->
+    <div class="attraction-description" id="attraction-description">
+      <p>{{ attr.description }}</p>  <!-- Описание аттракции -->
+    </div>
+
+    <!-- Секция с изображениями -->
+    <div class="images-section" id="images-section">
+      {% for file in files %}
+        {% if file.file.name|slice:"-3:" == 'jpg' or file.file.name|slice:"-3:" == 'png' or file.file.name|slice:"-4:" == 'jpeg' %}
+          <!-- Если файл изображение -->
+          <img src="{{ file.file.url }}" alt="{{ file.file.name }}" class="image-thumbnail" onclick="openImageModal(this)">
+        {% endif %}
+      {% empty %}
+        <!-- <p>No images available for this attraction.</p> -->
+      {% endfor %}
+    </div>
+
+    <!-- Модальное окно для увеличенной картинки -->
+    <div class="image-modal" id="imageModal" onclick="closeImageModal()">
+      <button class="close-btn" onclick="closeImageModal()">×</button>
+      <img id="modalImage" src="" alt="">
+    </div>
+
+    <!-- Секция с другими файлами -->
+    <div class="files-section" id="files-section">
+      {% for file in files %}
+        {% if file.file.name|slice:"-3:" != 'jpg' and file.file.name|slice:"-3:" != 'png' and file.file.name|slice:"-4:" != 'jpeg' %}
+          <div class="file">
+            <span class="file-name">{{ file.file.name|basename }}</span>
+            <div class="file-actions">
+              <a href="{{ file.file.url }}" download>
+                <button>Скачать</button>
+              </a>
+              <!-- <button onclick="alert('Preview feature coming soon')">Preview</button> -->
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <!-- Кнопка возврата -->
+    <button class="back-button" onclick="window.history.back()">Назад</button>
+  </div>
+
+  <script>
+    // Функция для открытия изображения в модальном окне
+    function openImageModal(imgElement) {
+      const modal = document.getElementById("imageModal");
+      const modalImage = document.getElementById("modalImage");
+      modal.style.display = "flex";
+      modalImage.src = imgElement.src;
+    }
+
+    // Функция для закрытия модального окна
+    function closeImageModal() {
+      const modal = document.getElementById("imageModal");
+      modal.style.display = "none";
+    }
+  </script>
+
+</body>
+</html>

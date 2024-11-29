@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Страница</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+        }
+        .section {
+            width: 45%;
+        }
+        .section h2 {
+            margin-bottom: 10px;
+        }
+        .list {
+            margin-bottom: 20px;
+        }
+        .list button {
+            display: block;
+            margin-bottom: 5px;
+            padding: 10px;
+            width: 100%;
+            text-align: left;
+            background-color: #f4f4f4;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+        .list button:hover {
+            background-color: #ddd;
+        }
+        .add-button {
+            padding: 10px;
+            width: 100%;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .add-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Админ Страница</h1>
+
+    <div class="container">
+        <!-- Столбец для достопримечательностей -->
+        <div class="section">
+            <h2>Достопримечательности</h2>
+            <button class="add-button" onclick="window.location.href='/add_attr/'">+ Добавить</button>
+            <div id="attractions-list" class="list">
+                <!-- Кнопки для достопримечательностей будут добавляться здесь -->
+            </div>
+        </div>
+
+        <!-- Столбец для задач -->
+        <div class="section">
+            <h2>Задачи</h2>
+            <button class="add-button" onclick="window.location.href='/add_task/'">+ Добавить</button>
+            <div id="tasks-list" class="list">
+                <!-- Кнопки для задач будут добавляться здесь -->
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+
+
+        // Функция для отображения кнопок достопримечательностей
+        function renderAttractions(attractions) {
+            const attractionsList = document.getElementById('attractions-list');
+            attractionsList.innerHTML = ''; // Очистить перед добавлением новых
+            attractions.forEach(attr => {
+                const button = document.createElement('button');
+                button.textContent = attr.name;
+                button.onclick = () => window.location.href = `/edit_attr/${attr.id}`;
+                attractionsList.appendChild(button);
+            });
+        }
+
+        // Функция для отображения кнопок задач
+        function renderTasks(tasks) {
+            const tasksList = document.getElementById('tasks-list');
+            tasksList.innerHTML = ''; // Очистить перед добавлением новых
+            tasks.forEach(task => {
+                const button = document.createElement('button');
+                button.textContent = task.name;
+                button.onclick = () => window.location.href = `/edit_task/${task.id}`;
+                tasksList.appendChild(button);
+            });
+        }
+
+
+        // Загружаем данные при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const attractionsData = JSON.parse('{{ attractions|safe }}');
+            const tasksData = JSON.parse('{{ tasks|safe }}');
+            renderAttractions(attractionsData);
+            renderTasks(tasksData);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить задание</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+        <style>
+        /* Стили для кнопки возврата */
+        .back-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff; /* Синий цвет */
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 50px; /* Большой отступ сверху */
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3; /* Более темный синий при наведении */
+        }
+
+        /* Обертка для центрирования */
+        .container {
+            text-align: left;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Редактировать достопримечательность</h1>
+    <form id="edit-attr-form" enctype="multipart/form-data">
+
+        <label for="name">Название:</label>
+        <input type="text" id="name" name="name" value="{{ attr.name }}" required><br>
+
+        <label for="description">Описание:</label>
+        <textarea id="description" name="description">{{ attr.description }}</textarea><br>
+
+        <h3>Файлы:</h3>
+        <ul id="file-list">
+            {% for file in attr.files.all %}
+                <li>
+                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name }}</a>
+                    <button type="button" class="delete-file" data-file-id="{{ file.id }}">Удалить</button>
+                </li>
+            {% endfor %}
+        </ul>
+
+        <label for="files">Добавить новые файлы:</label>
+        <input type="file" id="files" name="files" multiple><br>
+
+        <button type="submit">Сохранить</button>
+    </form>
+
+    <div id="response"></div>
+    <div class="container">
+        <a href="/admin_page/" class="back-button">На главную</a>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            const csrfToken = Cookies.get('csrftoken'); // CSRF токен
+
+            // Обработка удаления файла
+            $('.delete-file').click(function () {
+                const fileId = $(this).data('file-id');
+                const fileElement = $(this).parent();
+
+                $.ajax({
+                    url: `/delete_attr_file/${fileId}/`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function () {
+                        fileElement.remove();
+                    },
+                    error: function () {
+                        alert('Ошибка при удалении файла');
+                    }
+                });
+            });
+
+            // Обработка сохранения формы
+            $('#edit-attr-form').submit(function (e) {
+                e.preventDefault();
+
+                // Собираем данные из формы
+                const formData = new FormData();
+                formData.append('name', $('#name').val());
+                formData.append('description', $('#description').val());
+
+                // Добавляем новые файлы
+                const files = $('#files')[0].files;
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
+
+                // Отправляем данные на сервер
+                $.ajax({
+                    url: `/edit_attr/{{ attr.id }}/`,
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function (response) {
+                        $('#response').html(`<p>${response.message}</p>`);
+                    },
+                    error: function (jqXHR) {
+                        let errorMessage = 'Произошла ошибка';
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                            errorMessage = jqXHR.responseJSON.error;
+                        }
+
+                        $('#response').html(`<p style="color:red;">${errorMessage}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>

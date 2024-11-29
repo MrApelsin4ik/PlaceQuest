@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Карта и Меню</title>
+  <style>
+    :root {
+      --primary-red: #8B1D1D;
+      --background-color: #E8E3D7;
+      --white: #FFFFFF;
+      --dark-gray: #333333;
+    }
+
+    body {
+      background-color: var(--background-color);
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .column {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .column:not(:last-child) {
+      border-right: 2px solid var(--primary-red);
+    }
+
+    #map {
+      width: 100%;
+      height: 70%;
+
+    }
+
+    #coords {
+      margin-top: 10px;
+      font-size: 18px;
+    }
+
+    #menu-button {
+      display: block;
+      margin: 0 auto 20px;
+      padding: 10px 20px;
+      background-color: var(--primary-red);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #menu-button:hover {
+      background-color: #a31f1f;
+    }
+
+    .attraction{
+      margin: 10px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 12px;  /* Сглаженные углы */
+      background-color: #f9f9f9;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    /* Disable hover effect on attraction items when menu is open */
+    .no-hover .attraction:hover {
+      transform: none;
+      box-shadow: none;
+      z-index: auto; /* Prevent attraction items from overlapping */
+    }
+
+    .attraction h3 {
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .attraction p {
+      margin: 10px 0 0;
+    }
+
+    .header {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      width: 97%;
+      height: 64px;
+      background-color: var(--background-color);
+      padding: 0 16px;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--dark-gray);
+      justify-self: end;
+    }
+    .menu-icon:hover {
+      color: var(--primary-red);
+    }
+    /* Menu overlay styles */
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      right: -250px; /* Initially hidden off-screen */
+      width: 250px;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+      border-top-left-radius: 20px;
+      border-bottom-left-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      padding-top: 30px;
+      transition: right 0.3s ease;
+    }
+
+    .menu-overlay button, .back-button, .pass-task-button {
+      padding: 10px 20px;
+      background-color: var(--primary-red);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .menu-overlay button:hover {
+      background-color: #a31f1f;
+    }
+
+    .search-bar {
+      max-width: 400px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-bar input {
+      width: calc(100% - 30px);
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: var(--white);
+      color: var(--dark-gray);
+      font-size: 16px;
+    }
+    .search-bar input:focus {
+      outline: 2px solid var(--primary-red);
+    }
+
+    .search-bar input:hover {
+      background-color: #f5f5f5;
+    }
+    #task-details {
+      display: none;
+    }
+
+        /* Секция с изображениями */
+    .images-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .image-thumbnail {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Открытое изображение (раскрытие) */
+    .image-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .image-modal img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 8px;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: transparent;
+      color: white;
+      border: none;
+      font-size: 2rem;
+      cursor: pointer;
+    }
+
+    /* Секция файлов (не фото) */
+    .files-section {
+      margin-top: 30px;
+    }
+
+    .file {
+      background-color: #f1f1f1;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .file-name {
+      font-size: 1.1em;
+      color: #333;
+    }
+
+    .file-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .file-actions button {
+      padding: 8px 12px;
+      background-color: #a1331f;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .file-actions button:hover {
+      background-color: #8B1D1D;
+    }
+
+    .description {
+        max-width: 300px;  /* Задайте максимальную ширину для текста */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    @media (max-width: 768px) {
+      .header {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        padding: 8px;
+      }
+
+      .search-bar {
+        max-width: 100%;
+      }
+
+      .menu-icon {
+        display: block;
+        justify-content: flex-end
+      }
+    }
+
+    #task-details {
+      display: none;
+      background-color: var(--white);
+      border: 2px solid var(--primary-red);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    #task-details h2 {
+      margin-top: 0;
+    }
+
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="menu-icon">&#9776;</div>
+  </header>
+  <div class="menu-overlay" id="menu-overlay">
+    <a href="/" class="menu-button"><button>Домой</button></a>
+    <a href="/game" class="menu-button"><button>Игра</button></a>
+    <a href="/rating" class="menu-button"><button>Рейтинг</button></a>
+    <a href="/assistant" class="menu-button"><button>Помощник</button></a>
+  </div>
+  <div class="container">
+    <!-- Левая колонка -->
+    <div class="column" id="left-column">
+      <div id="map"></div>
+      <div id="coords">Широта: <span id="latitude">0.000000</span>, Долгота: <span id="longitude">0.000000</span></div>
+    </div>
+
+    <!-- Правая колонка -->
+    <div class="column" id="right-column">
+
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Поиск...">
+      </div>
+        <!-- Список заданий -->
+      <div id="task-list"></div>
+
+      <!-- Секция с деталями текущего задания -->
+      <div id="task-details" style="display: none;">
+        <h2 id="task-name"></h2>
+        <p id="task-description"></p>
+        <div id="task-files">
+
+          <!-- Секция изображений -->
+          <div class="images-section" id="images-section">
+            <!-- Изображения будут добавляться сюда через JavaScript -->
+          </div>
+
+          <!-- Модальное окно для изображений -->
+          <div class="image-modal" id="image-modal">
+            <img src="" alt="Full-size image" id="modal-image">
+            <button class="close-btn" onclick="closeImageModal()">×</button>
+          </div>
+
+          <!-- Секция файлов -->
+          <div class="files-section" id="files-section">
+            <!-- Файлы будут добавляться сюда через JavaScript -->
+          </div>
+        </div>
+        <button onclick="goBackToList()" class="back-button">Назад</button>
+        <button class="pass-task-button">Выполнить</button>
+      </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://api-maps.yandex.ru/2.1/?apikey=eea9d7f7-bf0b-45cf-bcd6-8f9a1f1c5add&lang=ru_RU" type="text/javascript"></script>
+  <script>
+    ymaps.ready(function () {
+      // Инициализация карты
+      var map = new ymaps.Map("map", {
+        center: [51.66, 39.20], // Координаты центра карты (Воронеж)
+        zoom: 10,
+        controls: ['zoomControl', 'typeSelector', 'geolocationControl']
+      });
+
+      var currentPlacemark = null;
+
+      map.events.add('click', function (e) {
+        var coords = e.get('coords');
+        document.getElementById('latitude').textContent = coords[0].toFixed(6);
+        document.getElementById('longitude').textContent = coords[1].toFixed(6);
+
+        if (currentPlacemark) {
+          map.geoObjects.remove(currentPlacemark);
+        }
+
+        currentPlacemark = new ymaps.Placemark(coords, {
+          balloonContent: `Широта: ${coords[0].toFixed(6)}<br>Долгота: ${coords[1].toFixed(6)}`
+        });
+
+        map.geoObjects.add(currentPlacemark);
+      });
+    });
+
+    let taskList;
+
+    function goBackToList() {
+      const taskList = document.getElementById('task-list');  // Ensure taskList is always accessible
+      const taskDetails = document.getElementById('task-details');
+
+      if (!taskList || !taskDetails) {
+        console.error('Task list or task details element not found.');
+        return;
+      }
+
+      taskDetails.style.display = 'none'; // Hide task details
+      taskList.style.display = 'block';   // Show task list
+    }
+
+    function openImageModal(src) {
+        const modal = document.getElementById('image-modal');
+        const modalImage = document.getElementById('modal-image');
+        modalImage.src = src;
+        modal.style.display = 'flex';
+      }
+
+      // Функция для закрытия модального окна
+      function closeImageModal() {
+        const modal = document.getElementById('image-modal');
+        modal.style.display = 'none';
+      }
+
+    document.addEventListener("DOMContentLoaded", function() {
+      let start = 0;  // Начальный индекс для первых 100 attr
+      const limit = 100;  // Количество элементов на скролл
+      const attractionList = document.getElementById('task-list');
+      const searchInput = document.getElementById('search-input');
+      const taskList = document.getElementById('task-list');
+      let attractionsData = [];
+
+        // Функция для открытия изображения в модальном окне
+
+
+
+      const imagesSection = document.getElementById('images-section');
+      const filesSection = document.getElementById('files-section');
+
+      // Функция для загрузки attr
+      function loadAttractions() {
+        if (!attractionList) {
+          console.error("Attraction list element not found.");
+          return;
+        }
+
+        fetch(`/game?start=${start}`, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          tasksData = data.tasks;  // Сохраняем tasks в массив
+          displayTasks(tasksData);  // Отображаем все tasks
+          start += limit;
+        })
+        .catch(error => console.error('Error fetching attractions:', error));
+      }
+
+      // Функция для отображения attr
+      function displayTasks(tasks) {
+        taskList.innerHTML = '';  // Очищаем текущий список attr
+        tasks.forEach(attr => {
+          const div = document.createElement('div');
+          div.classList.add('attraction');
+          div.innerHTML = `<h3>${attr.name}</h3><p class="description">${attr.description}</p>`;
+
+          // Добавляем обработчик клика для перехода на страницу attr
+          div.addEventListener('click', function() {
+            showTaskDetails(attr.id);
+          });
+
+
+
+          attractionList.appendChild(div);
+        });
+      }
+
+
+      // Функция для отображения подробностей задания
+      function showTaskDetails(taskId) {
+        fetch(`/task/${taskId}`, {
+          method: 'GET',
+        })
+        .then(response => response.json())
+        .then(data => {
+          const taskDetails = document.getElementById('task-details');
+          document.getElementById('task-name').textContent = data.task_name;
+          document.getElementById('task-description').textContent = data.task_description;
+
+          // Загружаем файлы
+          const taskFiles = document.getElementById('task-files');
+          imagesSection.innerHTML = '';
+          filesSection.innerHTML = '';
+          data.files.forEach(file => {
+            const isImage = file.file_name.match(/\.(jpg|jpeg|png|gif|bmp)$/i);
+
+            if (isImage) {
+              // Добавляем изображение в секцию изображений
+              const img = document.createElement('img');
+              img.src = file.file_url;
+              img.alt = file.file_name;
+              img.classList.add('image-thumbnail');
+              img.addEventListener('click', function() {
+                openImageModal(file.file_url);
+              });
+              imagesSection.appendChild(img);
+            } else {
+              // Добавляем файл в секцию других файлов
+              const fileDiv = document.createElement('div');
+              fileDiv.classList.add('file');
+              fileDiv.innerHTML = `
+                <span class="file-name">${file.file_name}</span>
+                <div class="file-actions">
+                  <button onclick="window.location.href='${file.file_url}'" download>Скачать</button>
+                </div>
+              `;
+              filesSection.appendChild(fileDiv);
+            }
+          });
+
+          // Показываем секцию с деталями задания и скрываем список
+          taskDetails.style.display = 'block';
+          taskList.style.display = 'none';
+        })
+        .catch(error => console.error('Error fetching task details:', error));
+      }
+
+
+
+      // Функция для фильтрации по поисковому запросу
+      function filterAttractions(query) {
+        const filtered = attractionsData.filter(attr => {
+          return attr.name.toLowerCase().includes(query.toLowerCase()) ||
+                 attr.description.toLowerCase().includes(query.toLowerCase());
+        });
+        displayAttractions(filtered);  // Обновляем список отображаемых attr
+      }
+
+      // Обработчик события для поля ввода (поиск)
+      searchInput.addEventListener('input', function() {
+        const query = searchInput.value;
+        filterAttractions(query);
+      });
+
+      // Начальная загрузка attr
+      loadAttractions();
+    });
+
+    document.addEventListener("DOMContentLoaded", function() {
+      const menuIcon = document.querySelector('.menu-icon');
+      const menuOverlay = document.getElementById('menu-overlay');
+      const body = document.body;
+
+      // Toggle menu visibility
+      menuIcon.addEventListener('click', function() {
+        const isMenuVisible = menuOverlay.style.right === '0px';
+        menuOverlay.style.right = isMenuVisible ? '-250px' : '0px';
+
+        // Toggle hover effect for main content
+        if (!isMenuVisible) {
+          body.classList.add('no-hover'); // Disable hover effects
+        } else {
+          body.classList.remove('no-hover'); // Enable hover effects
+        }
+      });
+
+      // Close menu if clicked outside
+      document.addEventListener('click', function(event) {
+        if (!menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
+          menuOverlay.style.right = '-250px';
+          body.classList.remove('no-hover'); // Enable hover effects when menu is closed
+        }
+      });
+
+      // Обработчик клика вне изображения для закрытия модального окна
+      document.getElementById('image-modal').addEventListener('click', function(event) {
+        const modalImage = document.getElementById('modal-image');
+
+        // Проверяем, был ли клик вне изображения
+        if (event.target !== modalImage) {
+          closeImageModal();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

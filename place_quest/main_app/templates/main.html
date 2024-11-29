@@ -2,9 +2,313 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Title</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Main Page</title>
+  <style>
+    /* Resetting some default styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Variables for colors */
+    :root {
+      --primary-red: #8B1D1D;
+      --background-color: #E8E3D7;
+      --white: #FFFFFF;
+      --dark-gray: #333333;
+    }
+
+    body {
+      background-color: var(--background-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Header container */
+    .header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      width: 100%;
+      height: 64px;
+      background-color: var(--background-color);
+      padding: 0 16px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 80px;
+    }
+
+    .logo a {
+      text-decoration: none;
+      color: var(--dark-gray);
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    /* Search bar container */
+    .search-bar {
+      max-width: 400px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-bar input {
+      width: calc(100% - 30px);
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: var(--white);
+      color: var(--dark-gray);
+      font-size: 16px;
+    }
+
+    .search-bar button {
+      padding: 8px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--dark-gray);
+    }
+
+    .search-bar input:focus {
+      outline: 2px solid var(--primary-red);
+    }
+
+    .search-bar input:hover {
+      background-color: #f5f5f5;
+    }
+
+    .menu-icon:hover {
+      color: var(--primary-red);
+    }
+
+
+    .main-content {
+      margin-top: 64px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .attraction {
+      margin: 10px;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 12px;  /* Сглаженные углы */
+      background-color: #f9f9f9;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      cursor: pointer;
+    }
+
+    /* Disable hover effect on attraction items when menu is open */
+    .no-hover .attraction:hover {
+      transform: none;
+      box-shadow: none;
+      z-index: auto; /* Prevent attraction items from overlapping */
+    }
+
+    .attraction:hover {
+      transform: scale(1.05);  /* Легкое увеличение при наведении */
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);  /* Тень при наведении */
+    }
+
+    .attraction h3 {
+      font-size: 1.5em;
+      margin: 0;
+    }
+
+    .attraction p {
+      margin: 10px 0 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        padding: 8px;
+      }
+
+      .search-bar {
+        max-width: 100%;
+      }
+
+      .menu-icon {
+        display: block;
+        margin-left: auto;
+      }
+    }
+    /* Menu overlay styles */
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      right: -250px; /* Initially hidden off-screen */
+      width: 250px;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+      border-top-left-radius: 20px;
+      border-bottom-left-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      padding-top: 30px;
+      transition: right 0.3s ease;
+    }
+
+    .menu-overlay button {
+      padding: 10px 20px;
+      background-color: var(--primary-red);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .menu-overlay button:hover {
+      background-color: #a31f1f;
+    }
+
+  </style>
 </head>
 <body>
+
+  <header class="header">
+    <!-- Logo (Links to the homepage) -->
+    <div class="logo"><a href="/">Logo</a></div>
+
+    <!-- Search bar -->
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="Поиск...">
+      <button class="search-icon">&#128269;</button>
+    </div>
+
+    <!-- Menu icon (Expandable menu on smaller screens) -->
+    <div class="menu-icon">&#9776;</div>
+  </header>
+
+  <!-- Menu overlay (Initially hidden) -->
+  <div class="menu-overlay" id="menu-overlay">
+    <a href="/" class="menu-button"><button>Домой</button></a>
+    <a href="/game" class="menu-button"><button>Игра</button></a>
+    <a href="/rating" class="menu-button"><button>Рейтинг</button></a>
+    <a href="/assistant" class="menu-button"><button>Помощник</button></a>
+    <a href="/logout" class="menu-button"><button>Выйти</button></a>
+  </div>
+
+  <!-- Main content area (Empty for now, just focusing on search functionality) -->
+  <div class="main-content" id="attraction-list">
+
+  </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    let start = 0;  // Начальный индекс для первых 100 attr
+    const limit = 100;  // Количество элементов на скролл
+    const attractionList = document.getElementById('attraction-list');
+    const searchInput = document.getElementById('search-input');
+    let attractionsData = [];
+
+    // Функция для загрузки attr
+    function loadAttractions() {
+      if (!attractionList) {
+        console.error("Attraction list element not found.");
+        return;
+      }
+
+      fetch(`/?start=${start}`, {
+        method: 'GET',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        attractionsData = data.attractions;  // Сохраняем attr в массив
+        displayAttractions(attractionsData);  // Отображаем все attr
+        start += limit;
+      })
+      .catch(error => console.error('Error fetching attractions:', error));
+    }
+
+    // Функция для отображения attr
+    function displayAttractions(attractions) {
+      attractionList.innerHTML = '';  // Очищаем текущий список attr
+      attractions.forEach(attr => {
+        const div = document.createElement('div');
+        div.classList.add('attraction');
+        div.innerHTML = `<h3>${attr.name}</h3><p>${attr.description}</p>`;
+
+        // Добавляем обработчик клика для перехода на страницу attr
+        div.addEventListener('click', function() {
+          window.location.href = `/attr/${attr.id}`;
+        });
+
+        attractionList.appendChild(div);
+      });
+    }
+
+    // Функция для фильтрации по поисковому запросу
+    function filterAttractions(query) {
+      const filtered = attractionsData.filter(attr => {
+        return attr.name.toLowerCase().includes(query.toLowerCase()) ||
+               attr.description.toLowerCase().includes(query.toLowerCase());
+      });
+      displayAttractions(filtered);  // Обновляем список отображаемых attr
+    }
+
+    // Обработчик события для поля ввода (поиск)
+    searchInput.addEventListener('input', function() {
+      const query = searchInput.value;
+      filterAttractions(query);
+    });
+
+    // Начальная загрузка attr
+    loadAttractions();
+  });
+  document.addEventListener("DOMContentLoaded", function() {
+      const menuIcon = document.querySelector('.menu-icon');
+      const menuOverlay = document.getElementById('menu-overlay');
+      const body = document.body;
+
+      // Toggle menu visibility
+      menuIcon.addEventListener('click', function() {
+        const isMenuVisible = menuOverlay.style.right === '0px';
+        menuOverlay.style.right = isMenuVisible ? '-250px' : '0px';
+
+        // Toggle hover effect for main content
+        if (!isMenuVisible) {
+          body.classList.add('no-hover'); // Disable hover effects
+        } else {
+          body.classList.remove('no-hover'); // Enable hover effects
+        }
+      });
+
+      // Close menu if clicked outside
+      document.addEventListener('click', function(event) {
+        if (!menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
+          menuOverlay.style.right = '-250px';
+          body.classList.remove('no-hover'); // Enable hover effects when menu is closed
+        }
+      });
+    });
+</script>
 
 </body>
 </html>

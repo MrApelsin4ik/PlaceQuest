@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Добавить задание</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
+        <style>
+        /* Стили для кнопки возврата */
+        .back-button {
+            display: inline-block;
+            padding: 15px 30px;
+            background-color: #007bff; /* Синий цвет */
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 50px; /* Большой отступ сверху */
+            transition: background-color 0.3s;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3; /* Более темный синий при наведении */
+        }
+
+        /* Обертка для центрирования */
+        .container {
+            text-align: left;
+        }
+
+    </style>
+</head>
+<body>
+    <h1>Добавить задание</h1>
+    <form id="add-task-form" enctype="multipart/form-data">
+        <label for="name">Название:</label>
+        <input type="text" id="name" name="name" required><br>
+
+        <label for="description">Описание:</label>
+        <textarea id="description" name="description"></textarea><br>
+
+        <label for="longitude">Долгота:</label>
+        <input type="text" id="longitude" name="longitude"><br>
+
+        <label for="latitude">Широта:</label>
+        <input type="text" id="latitude" name="latitude"><br>
+
+        <label for="files">Файлы:</label>
+        <input type="file" id="files" name="files" multiple><br>
+
+        <button type="submit">Добавить</button>
+
+    </form>
+
+    <div id="response"></div>
+    <div class="container">
+        <a href="/admin_page/" class="back-button">На главную</a>
+    </div>
+    <script>
+        $(document).ready(function () {
+            const csrfToken = Cookies.get('csrftoken');  // Получаем CSRF токен
+
+            $('#add-task-form').submit(function (e) {
+                e.preventDefault();  // Предотвращаем стандартное поведение формы
+
+                // Собираем данные из формы
+                const formData = new FormData();
+                formData.append('name', $('#name').val());
+                formData.append('description', $('#description').val());
+                formData.append('longitude', $('#longitude').val());
+                formData.append('latitude', $('#latitude').val());
+
+                // Получаем файлы из формы и добавляем их в formData
+                const files = $('#files')[0].files; // Получаем коллекцию файлов
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]); // Добавляем каждый файл в formData
+                }
+
+                // Отправляем данные на сервер через AJAX
+                $.ajax({
+                    url: '/add_task/',  // URL для отправки запроса
+                    method: 'POST',
+                    data: formData,  // Используем FormData для отправки файлов
+                    processData: false,  // Не обрабатывать данные
+                    contentType: false,  // Не устанавливать заголовок contentType
+                    headers: {
+                        'X-CSRFToken': csrfToken  // Добавляем CSRF токен в заголовок
+                    },
+                    success: function (response) {
+                        $('#response').html(`<p>${response.message}</p>`);
+                    },
+                    error: function (jqXHR) {
+                        let errorMessage = 'Произошла ошибка';
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                            errorMessage = jqXHR.responseJSON.error;
+                        }
+
+                        $('#response').html(`<p style="color:red;">${errorMessage}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
