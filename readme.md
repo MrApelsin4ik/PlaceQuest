@@ -47,8 +47,16 @@ Once logged in or registered, the main page provides access to all the core feat
 - e.t.c.
 
 ## Demo Video
-Check out the [demo video](<(https://drive.google.com/file/d/1poLZR2hNrDAzCHzOoTcKM_em9ht270_t/view?usp=drive_link)>) showcasing the prototype of the tool and its features.
+Check out the [demo video](<(
+
+https://github.com/user-attachments/assets/b0813805-3501-4364-a685-a31d694648d2
+
+>) showcasing the prototype of the tool and its features.
 
 ## License
 This project is currently freely available for use.
+
+
+
+https://github.com/user-attachments/assets/84819109-2224-4201-9a79-f7044f9d7a53
 
