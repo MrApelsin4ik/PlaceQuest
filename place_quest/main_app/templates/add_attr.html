@@ -41,6 +41,12 @@
         <label for="description">Описание:</label>
         <textarea id="description" name="description"></textarea><br>
 
+        <label for="filters">Фильтры:</label><br>
+        {% for filter in filters %}
+            <input type="checkbox" id="filter_{{ filter.id }}" name="filters" value="{{ filter.id }}">
+            <label for="filter_{{ filter.id }}">{{ filter.key }} - {{ filter.value }}</label><br>
+        {% endfor %}
+
         <label for="files">Файлы:</label>
         <input type="file" id="files" name="files" multiple><br>
 
@@ -68,6 +74,17 @@
                 for (let i = 0; i < files.length; i++) {
                     formData.append('files', files[i]); // Добавляем каждый файл в formData
                 }
+
+                // Получаем выбранные фильтры
+                const selectedFilters = [];
+                $('input[name="filters"]:checked').each(function () {
+                    selectedFilters.push($(this).val());
+                });
+
+                 // Добавляем выбранные фильтры в formData
+                selectedFilters.forEach(function (filterId) {
+                    formData.append('filters', filterId);
+                });
 
                 // Отправляем данные на сервер через AJAX
                 $.ajax({

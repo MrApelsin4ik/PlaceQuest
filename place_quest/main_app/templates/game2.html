@@ -291,6 +291,13 @@
   color: #a31f1f;
 }
 
+#right-column {
+  flex: 0 0 25%; /* Set to a smaller width, like 30% of the container */
+  padding: 10px;
+  overflow-y: auto;
+}
+
+
     @media (max-width: 768px) {
       .header {
         grid-template-columns: auto 1fr;
@@ -326,6 +333,34 @@
       display: none;
     }
 
+    /* Стили для сетки 3x3 */
+.puzzle-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 100px);
+  gap: 10px;
+  margin-top: 20px;
+  width: 100%; /* Убедитесь, что сетка занимает пространство */
+  height: 100%; /* Убедитесь, что сетка имеет размеры */
+}
+
+.puzzle-cell {
+  width: 100px;
+  height: 100px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  background-size: cover; /* Для отображения части изображения */
+  background-position: center;
+  position: relative;  /* Может помочь с позиционированием в сетке */
+}
+
+.puzzle-cell.drag-over {
+  border: 2px dashed #8B1D1D;  /* Изменяем стиль, когда ячейка перетаскивается */
+}
 
   </style>
 </head>
@@ -333,7 +368,7 @@
   <header class="header">
     <div class="menu-icon">&#9776;</div>
   </header>
-  <div class="menu-overlay" id="menu-overlay" style="z-index: 2;" >
+  <div class="menu-overlay" id="menu-overlay">
     <a href="/" class="menu-button"><button>Домой</button></a>
     <a href="/game" class="menu-button"><button>Игра (гео)</button></a>
     <a href="/game2" class="menu-button"><button>Игра (пазл)</button></a>
@@ -344,7 +379,7 @@
   <div class="container">
     <!-- Левая колонка -->
     <div class="column" id="left-column">
-      <div id="map"></div>
+      <div class="puzzle-container" id="puzzle-container"></div>
     </div>
 
     <!-- Правая колонка -->
@@ -362,7 +397,6 @@
       <!-- Секция с деталями текущего задания -->
       <div id="task-details" style="display: none;">
         <h2 id="task-name"></h2>
-        <p id="task-description"></p>
         <div id="task-files">
 
           <!-- Секция изображений -->
@@ -370,26 +404,18 @@
             <!-- Изображения будут добавляться сюда через JavaScript -->
           </div>
 
-          <!-- Модальное окно для изображений -->
-          <div class="image-modal" id="image-modal">
-            <img src="" alt="Full-size image" id="modal-image">
-            <button class="close-btn" onclick="closeImageModal()">×</button>
-          </div>
 
-          <!-- Секция файлов -->
-          <div class="files-section" id="files-section">
-            <!-- Файлы будут добавляться сюда через JavaScript -->
-          </div>
         </div>
         <button onclick="goBackToList()" class="back-button">Назад</button>
-        <button class="pass-task-button">Выполнить</button>
+        <button class="pass-task-button" id="select-task-button">Выбрать</button>
       </div>
-      <div class="modal" id="success-modal" style="display: none; z-index: 1;">
+      <div class="modal" id="success-modal" style="display: none;">
         <div class="modal-content">
           <button id="close-modal" class="close-btn">Закрыть</button>
           <div class="message-box">
-            <p>Задание успешно выполнено!</p>
+            <p>Поздравляем, пазл собран правильно!</p>
             <p>Начислен рейтинг: <span id="task-rating"></span></p>
+            <p>Выполнено за: <span id="elapsed-time"></span>с.</p>
           </div>
         </div>
       </div>
@@ -401,9 +427,34 @@
 
 
   </div>
-  <script src="https://api-maps.yandex.ru/2.1/?apikey=eea9d7f7-bf0b-45cf-bcd6-8f9a1f1c5add&lang=ru_RU" type="text/javascript"></script>
 
   <script>
+    let tasksData = [];
+    let cur_taskId;
+    let startTime = null;  // Variable to store the start time of the timer
+    let timerInterval = null; // Timer interval ID
+    let elapsedTime;
+
+       // Timer functions
+  function startTimer() {
+    startTime = Date.now();
+    timerInterval = setInterval(updateTimer, 1000);  // Update every second
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);  // Stop the timer
+      timerInterval = null;
+    }
+  }
+
+  function updateTimer() {
+    elapsedTime = Math.floor((Date.now() - startTime) / 1000);  // Get time in seconds
+    const minutes = Math.floor(elapsedTime / 60);
+    const seconds = elapsedTime % 60;
+    document.getElementById('timer').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;  // Display the time
+  }
+
     function goBackToList() {
       const taskList = document.getElementById('task-list');  // Ensure taskList is always accessible
       const taskDetails = document.getElementById('task-details');
@@ -419,72 +470,296 @@
     }
 
 
+
     document.addEventListener("DOMContentLoaded", function() {
 
-    let latitude, longitude;
     let start = 0;  // Начальный индекс для первых 100 attr
     const limit = 100;  // Количество элементов на скролл
 
     const searchInput = document.getElementById('search-input');
     const taskList = document.getElementById('task-list');
     const taskDetails = document.getElementById('task-details');
-
-    let tasksData = [];
+    let originalIndexes = [];  // Список для первоначальных позиций
+    let currentIndexes = [];   // Список для текущих позиций
+    let cur_task;
 
     const imagesSection = document.getElementById('images-section');
     const filesSection = document.getElementById('files-section');
 
-
-    let map;
-    let userPlacemark = null; // Метка, поставленная пользователем
-    let taskPlacemark = null; // Метка для pass task
-
-    ymaps.ready(function () {
-      // Инициализация карты
-      map = new ymaps.Map("map", {
-        center: [51.66, 39.20], // Координаты центра карты (Воронеж)
-        zoom: 10,
-        controls: ['zoomControl', 'typeSelector', 'geolocationControl']
-      });
+// Функция для проверки, собран ли пазл
+function checkPuzzleSolved() {
+  const isSolved = originalIndexes.every((value, index) => value === currentIndexes[index]);
+  console.log(isSolved,originalIndexes, currentIndexes);
+  if (isSolved) {
+    stopTimer();
+    showSuccessMessage();
+  }
+  }
 
 
+function clearCanvasAndVariables() {
+  // Очищаем сетку пазла
+  const puzzleGrid = document.getElementById('puzzle-grid');
+  if (puzzleGrid) {
+    puzzleGrid.innerHTML = '';  // Удаляем все элементы в сетке
+  }
 
-      map.events.add('click', function (e) {
-        var coords = e.get('coords');
-        latitude = coords[0].toFixed(6);
-        longitude = coords[1].toFixed(6);
-        console.log(latitude,longitude);
-        if (userPlacemark) {
-          map.geoObjects.remove(userPlacemark);
-        }
+  // Сбрасываем все переменные
+  originalIndexes = [];
+  currentIndexes = [];
+  cur_taskId = null;
+  startTime = null;
+  timerInterval = null;
+  elapsedTime = 0;
 
-      userPlacemark = new ymaps.Placemark(coords, {
-          balloonContent: `Широта: ${coords[0].toFixed(6)}<br>Долгота: ${coords[1].toFixed(6)}`
-      }, {
-          preset: 'islands#blueIcon'  // Синяя метка для пользовательской точки
-      });
+  // Очищаем таймер
+  document.getElementById('timer').textContent = '0:00';  // Сбрасываем отображение времени
+}
 
-      map.geoObjects.add(userPlacemark);
-      });
+
+function showSuccessMessage() {
+  const modal = document.getElementById('success-modal');
+  modal.style.display = 'flex';
+
+  // Send elapsed time to the server
+  const data = {
+    task_id: cur_taskId,
+    elapsed_time: elapsedTime
+  };
+
+  fetch('/pass_task2/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-CSRFToken': getCookie('csrftoken')  // Add CSRF token if needed
+    },
+    body: JSON.stringify(data)  // Send data to the server
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Display the rating and elapsed time
+      const rating = data.rating || '0';
+      document.getElementById('task-rating').textContent = `${rating}`;
+      document.getElementById('elapsed-time').textContent = `${elapsedTime}`;
+      removeCompletedTask(cur_taskId);
+
+      //clearCanvasAndVariables();
+
+    } else {
+      // Handle error if task completion was not successful
+      console.error('Error:', data.error);
+    }
+  })
+  .catch(error => {
+    console.error('Request failed:', error);
+  });
+}
+
+// Функция для удаления выполненного задания из списка
+function removeCompletedTask(taskId) {
+  // Находим элемент с данным task_id в списке
+  const taskElement = document.querySelector(`[data-task-id='${taskId}']`);
+  if (taskElement) {
+    taskElement.remove();  // Удаляем элемент из DOM
+  }
+}
+        // Функция нарезки изображения на 9 частей
+function createPuzzle(imageUrl, parts) {
+  const puzzleContainer = document.getElementById('puzzle-container');
+  const puzzleGrid = document.getElementById('puzzle-grid');
+
+  const gridSize = Math.sqrt(parts);
+
+  // Стиль для сетки с динамическим количеством колонок и строк
+  puzzleGrid.classList.add('puzzle-grid');
+  puzzleGrid.style.gridTemplateColumns = `repeat(${gridSize}, 100px)`; // Задаём количество колонок
+  puzzleGrid.style.gridTemplateRows = `repeat(${gridSize}, 100px)`;    // Задаём количество строк
+  puzzleContainer.appendChild(puzzleGrid);
+
+  // Создаем элемент изображения
+  const img = new Image();
+  img.src = imageUrl;
+
+  img.onload = function() {
+    const imgWidth = img.width;
+    const imgHeight = img.height;
+
+    const gridSize = Math.sqrt(cur_task.parts);
+
+    const pieceWidth = imgWidth / gridSize;
+    const pieceHeight = imgHeight / gridSize;
+
+    // Разбиваем изображение на 9 частей и создаем ячейки для пазла
+    let pieces = [];
+
+    for (let i = 0; i < gridSize; i++) {
+      for (let j = 0; j < gridSize; j++) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = pieceWidth;
+        canvas.height = pieceHeight;
+
+        ctx.drawImage(img, j * pieceWidth, i * pieceHeight, pieceWidth, pieceHeight, 0, 0, pieceWidth, pieceHeight);
+
+        // Сохраняем часть пазла
+        pieces.push({
+          canvas: canvas,
+          originalIndex: i * gridSize + j // Store the original index of the piece
+        });
+
+        // Создаем ячейки для пазла
+        const cell = document.createElement('div');
+        cell.classList.add('puzzle-cell');
+        cell.setAttribute('draggable', true);
+        cell.setAttribute('data-index', i * gridSize + j);
+
+
+        cell.style.backgroundImage = `url(${canvas.toDataURL()})`; // Устанавливаем изображение в ячейку
+
+        // Добавляем обработчик для перетаскивания
+        cell.addEventListener('dragstart', handleDragStart);
+        cell.addEventListener('dragover', handleDragOver);
+        cell.addEventListener('drop', handleDrop);
+        cell.addEventListener('dragenter', handleDragEnter);
+        cell.addEventListener('dragleave', handleDragLeave);
+
+        // Добавляем ячейку в сетку
+        puzzleGrid.appendChild(cell);
+        originalIndexes.push(i * gridSize + j);  // Добавляем исходный индекс
+
+        currentIndexes.push(i * gridSize + j);
+      }
+      console.log(originalIndexes)
+    }
+
+    // Shuffle the puzzle pieces randomly
+    shufflePuzzle(pieces);
+
+    // Start the timer when puzzle is shuffled
+    startTimer();
+
+
+
+    // After shuffling, reassign the shuffled pieces to the grid
+    puzzleGrid.innerHTML = ''; // Clear the grid
+    pieces.forEach(piece => {
+      const cell = document.createElement('div');
+      cell.classList.add('puzzle-cell');
+      cell.setAttribute('draggable', true);
+      cell.setAttribute('data-index', piece.originalIndex);  // Original position
+      cell.style.backgroundImage = `url(${piece.canvas.toDataURL()})`; // Set image
+
+      // Add the drag and drop event listeners again
+      cell.addEventListener('dragstart', handleDragStart);
+      cell.addEventListener('dragover', handleDragOver);
+      cell.addEventListener('drop', handleDrop);
+      cell.addEventListener('dragenter', handleDragEnter);
+      cell.addEventListener('dragleave', handleDragLeave);
+
+      // Add to the grid
+      puzzleGrid.appendChild(cell);
+    });
+  };
+}
+
+// Shuffle function
+function shufflePuzzle(pieces) {
+  for (let i = pieces.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pieces[i], pieces[j]] = [pieces[j], pieces[i]]; // Переставляем элементы
+
+    // Обновляем индексы в массиве currentIndexes и originalIndexes
+    const temp = originalIndexes[i];
+    originalIndexes[i] = originalIndexes[j];
+    originalIndexes[j] = temp;
+  }}
+
+
+    function handleDragStart(e) {
+      e.dataTransfer.setData('text/plain', e.target.getAttribute('data-index'));
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();  // Разрешаем сброс
+    }
+
+    function handleDrop(e) {
+  e.preventDefault();
+  const fromIndex = e.dataTransfer.getData('text/plain');
+  const toCell = e.target;
+
+  if (toCell.classList.contains('puzzle-cell')) {
+    const fromCell = document.querySelector(`.puzzle-cell[data-index='${fromIndex}']`);
+
+    // Обмениваем картинки между ячейками
+    const tempImage = fromCell.style.backgroundImage;
+    fromCell.style.backgroundImage = toCell.style.backgroundImage;
+    toCell.style.backgroundImage = tempImage;
+
+        // Обновляем текущие индексы
+    const fromCellIndex = parseInt(fromCell.getAttribute('data-index'));
+    const toCellIndex = parseInt(toCell.getAttribute('data-index'));
+
+    // Обновляем массив текущих индексов
+    const fromIndexPos = currentIndexes.indexOf(fromCellIndex);
+    const toIndexPos = currentIndexes.indexOf(toCellIndex);
+
+    currentIndexes[fromIndexPos] = toCellIndex;
+    currentIndexes[toIndexPos] = fromCellIndex;
+
+    // После каждого перемещения проверяем, собран ли пазл
+    checkPuzzleSolved();
+  }
+    }
+
+    function handleDragEnter(e) {
+      e.target.classList.add('drag-over');
+    }
+
+    function handleDragLeave(e) {
+      e.target.classList.remove('drag-over');
+    }
+
+
+    // Обработчик клика на кнопку "Выбрать"
+    document.getElementById('select-task-button').addEventListener('click', function() {
+      const task = tasksData.find(task => task.id === cur_taskId);
+      cur_task = task;
+      if (task && task.image_url) {
+        const leftColumn = document.getElementById('left-column');
+        leftColumn.innerHTML = '<div class="puzzle-container" id="puzzle-container"></div><div class="puzzle-grid" id="puzzle-grid"></div><div id="timer" style="margin-top: 3vh;">0:00</div>'; // Очищаем левый столбец
+        /*
+        // Создаем основное изображение
+        const img = document.createElement('img');
+        img.src = task.image_url;
+        img.alt = task.name;
+        img.style.width = '70%';  // Устанавливаем размер изображения
+        img.style.height = '70%';
+        leftColumn.appendChild(img);
+        */
+        // Создаем пазл из изображения
+        createPuzzle(task.image_url, cur_task.parts);
+      }
     });
 
-    let cur_taskId;
 
+
+
+
+    /*
     document.querySelector('.pass-task-button').addEventListener('click', function() {
         document.getElementById('success-modal').style.display = 'flex';
-        if (latitude === undefined || longitude === undefined) {
-            alert("Сначала выберите точку на карте.");
-            return;  // Prevent the request if coordinates are not set
-        }
+
         // Создаем объект данных для отправки
         const data = {
             task_id: cur_taskId,
-            longitude: longitude,
-            latitude: latitude
+
         };
         console.log(data);
         // Отправляем данные на сервер через fetch
-        fetch('/pass_task/', {
+        fetch('/pass_task2/', {
             method: 'POST', // Используем GET, так как в функции pass_task используется request.GET
             headers: {
                 'Content-Type': 'application/json',
@@ -511,37 +786,6 @@
               newElement3.textContent = data.inf_aft_complete;
               messageBox.appendChild(newElement3);
 
-              if (data.latitude !== undefined && data.longitude !== undefined) {
-                    // Добавляем метку для pass task (красную)
-                    taskPlacemark = new ymaps.Placemark([data.latitude, data.longitude], {
-                        balloonContent: `Широта: ${data.latitude}<br>Долгота: ${data.longitude}`
-                    }, {
-                        preset: 'islands#redIcon'  // Красная метка для выполненной задачи
-                    });
-                    map.geoObjects.add(taskPlacemark);
-                    console.log('aaaa');
-                    // Вычисляем расстояние между метками
-                    if (userPlacemark) {
-                        const userCoords = userPlacemark.geometry.getCoordinates();
-                        const taskCoords = taskPlacemark.geometry.getCoordinates();
-                        const distance = ymaps.coordSystem.geo.getDistance(userCoords, taskCoords).toFixed(2); // Расстояние в метрах
-                        console.log(distance);
-                        // Выводим расстояние в модальное окно
-                        const distanceElement = document.createElement('p');
-                        distanceElement.textContent = `Расстояние между точками: ${distance} метров`;
-                        messageBox.appendChild(distanceElement);
-
-                        // Добавляем линию между метками
-                        const line = new ymaps.Polyline([userCoords, taskCoords], {}, {
-                            strokeColor: "#0000FF", // Синий цвет линии
-                            strokeWidth: 4
-                        });
-                        map.geoObjects.add(line);
-                    }
-                }
-
-
-
 
               const taskElement = document.querySelector(`[data-task-id='${cur_taskId}']`);
               if (taskElement) {
@@ -560,15 +804,14 @@
         });
 
     });
-
+    */
 
     // Close the modal when the close button is clicked
     document.getElementById('close-modal').addEventListener('click', function() {
         document.getElementById('success-modal').style.display = 'none';
         goBackToList();
-        if (map) {
-            map.geoObjects.removeAll();  // Удаляем все метки с карты
-        }
+        location.reload();
+
     });
 
     // Функция для получения CSRF токена из cookie
@@ -579,22 +822,6 @@
 
 
 
-
-
-    function openImageModal(src) {
-        const modal = document.getElementById('image-modal');
-        const modalImage = document.getElementById('modal-image');
-        modalImage.src = src;
-        modal.style.display = 'flex';
-      }
-
-      // Функция для закрытия модального окна
-      function closeImageModal() {
-        const modal = document.getElementById('image-modal');
-        modal.style.display = 'none';
-      }
-
-
       // Функция для загрузки attr
       function loadAttractions() {
         if (!taskList) {
@@ -602,7 +829,7 @@
           return;
         }
 
-        fetch(`/game?start=${start}`, {
+        fetch(`/game2?start=${start}`, {
           method: 'GET',
           headers: {
             'X-Requested-With': 'XMLHttpRequest'
@@ -623,7 +850,7 @@
           const div = document.createElement('div');
           div.classList.add('attraction');
           div.setAttribute('data-task-id', task.id);  // Добавляем идентификатор задания
-          div.innerHTML = `<h3>${task.name}</h3><p class="description">${task.description}</p>`;
+          div.innerHTML = `<h3>${task.name}</h3><h5>Рейтинг: ${task.rating}</h5><h7>Время на выполнение: ${task.required_time}</h7>`;
 
           // Добавляем обработчик клика для перехода на страницу задания
           div.addEventListener('click', function() {
@@ -635,73 +862,44 @@
       }
 
 
+    function showTaskDetails(taskId) {
+    const task = tasksData.find(task => task.id === taskId); // Находим задание по id
+    cur_taskId = taskId;
 
-      // Функция для отображения подробностей задания
-      function showTaskDetails(taskId) {
-        cur_taskId = taskId
-        fetch(`/task/${taskId}`, {
-          method: 'GET',
-        })
-        .then(response => response.json())
-        .then(data => {
+    // Загружаем имя задания
+    document.getElementById('task-name').textContent = task.name;
 
-          document.getElementById('task-name').textContent = data.task_name;
-          document.getElementById('task-description').textContent = data.task_description;
+    // Загружаем изображение (если есть) в правую колонку
+    const imagesSection = document.getElementById('images-section');
+    imagesSection.innerHTML = '';  // Очищаем старые изображения, если они есть
 
-          // Загружаем файлы
-          imagesSection.innerHTML = '';
-          filesSection.innerHTML = '';
-          data.files.forEach(file => {
-            const isImage = file.file_name.match(/\.(jpg|jpeg|png|gif|bmp)$/i);
+    if (task.image_url) {
+        const img = document.createElement('img');
+        img.src = task.image_url;
+        img.alt = task.name;
+        img.classList.add('image-thumbnail');
+        imagesSection.appendChild(img);
+    }
 
-            if (isImage) {
-              // Добавляем изображение в секцию изображений
-              const img = document.createElement('img');
-              img.src = file.file_url;
-              img.alt = file.file_name;
-              img.classList.add('image-thumbnail');
-              img.addEventListener('click', function() {
-                openImageModal(file.file_url);
-              });
-              imagesSection.appendChild(img);
-            } else {
-              // Добавляем файл в секцию других файлов
-              const fileDiv = document.createElement('div');
-              fileDiv.classList.add('file');
-              fileDiv.innerHTML = `
-                <span class="file-name">${file.file_name}</span>
-                <div class="file-actions">
-                  <button onclick="window.location.href='${file.file_url}'" download>Скачать</button>
-                </div>
-              `;
-              filesSection.appendChild(fileDiv);
-            }
-          });
-
-          // Показываем секцию с деталями задания и скрываем список
-          taskDetails.style.display = 'block';
-          taskList.style.display = 'none';
-        })
-        .catch(error => console.error('Error fetching task details:', error));
-      }
-
+    // Показываем секцию с деталями задания и скрываем список
+    taskDetails.style.display = 'block';
+    taskList.style.display = 'none';
+}
 
 
       // Функция для фильтрации по поисковому запросу
       function filterAttractions(query) {
         const filtered = tasksData.filter(attr => {
-          return attr.name.toLowerCase().includes(query.toLowerCase()) ||
-                 attr.description.toLowerCase().includes(query.toLowerCase());
+          return attr.name.toLowerCase().includes(query.toLowerCase());
         });
-        displayTasks(filtered);  // Обновляем список отображаемых attr
+        displayTasks(filtered);
       }
 
       // Обработчик события для поля ввода (поиск)
       searchInput.addEventListener('input', function() {
-        const query = searchInput.value;
-        filterAttractions(query);
+          const query = searchInput.value;
+          filterAttractions(query);
       });
-
       // Начальная загрузка attr
       loadAttractions();
 
@@ -732,15 +930,6 @@
         }
       });
 
-      // Обработчик клика вне изображения для закрытия модального окна
-      document.getElementById('image-modal').addEventListener('click', function(event) {
-        const modalImage = document.getElementById('modal-image');
-
-        // Проверяем, был ли клик вне изображения
-        if (event.target !== modalImage) {
-          closeImageModal();
-        }
-      });
 
       });
 

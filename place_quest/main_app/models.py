@@ -38,10 +38,17 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.email
 
 
+class Filter(models.Model):
+    key = models.CharField(max_length=255)
+    value = models.CharField(max_length=255)
+
+    def __str__(self):
+        return f"{self.key} - {self.value}"
+
 class AttrList(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-
+    filters = models.ManyToManyField(Filter, through='AttrFilter')
     def __str__(self):
         return self.name
 
@@ -59,6 +66,7 @@ class AttrFile(models.Model):
 class TaskList(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
+    inf_aft_complete = models.TextField(blank=True)
     longitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -85,3 +93,54 @@ class TaskFile(models.Model):
         return f"Файл для задачи: {self.task.name}"
 
 
+class TaskList2(models.Model):
+    name = models.CharField(max_length=255)
+    inf_aft_complete = models.TextField(blank=True)
+    image = models.ImageField(upload_to='task2_images/', null=True, blank=True)
+    amount_of_divisions = models.IntegerField(default=9)
+    rating = models.IntegerField(default=100)
+    required_time = models.IntegerField(null=True, blank=True)
+    parts = models.IntegerField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+
+
+class UserTask(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tasks')
+    task = models.ForeignKey(TaskList, on_delete=models.CASCADE, related_name='user_tasks')
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        blank=True,
+        null=True,
+    )
+    task_number = models.IntegerField()  # Номер задания для пользователя
+
+class UserTask2(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='tasks2')
+    task = models.ForeignKey(TaskList2, on_delete=models.CASCADE, related_name='user_tasks')
+    execution_time = models.TimeField(null=True, blank=True)  # Время выполнения задачи (можно записывать как время)
+    image = models.ImageField(upload_to='task2_images/', null=True, blank=True)  # Поле для изображения
+
+
+
+
+# Промежуточная модель для связывания AttrList и Filter
+class AttrFilter(models.Model):
+    attr = models.ForeignKey(AttrList, on_delete=models.CASCADE)
+    filter = models.ForeignKey(Filter, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.attr.name} - {self.filter.key}: {self.filter.value}"
+
+    class Meta:
+        unique_together = ('attr', 'filter')  # Уникальная пара атрибута и фильтра, чтобы не было дубликатов

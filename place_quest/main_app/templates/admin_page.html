@@ -14,7 +14,7 @@
             justify-content: space-between;
         }
         .section {
-            width: 45%;
+            width: 30%;
         }
         .section h2 {
             margin-bottom: 10px;
@@ -65,9 +65,16 @@
 
         <!-- Столбец для задач -->
         <div class="section">
-            <h2>Задачи</h2>
+            <h2>Задания 1</h2>
             <button class="add-button" onclick="window.location.href='/add_task/'">+ Добавить</button>
             <div id="tasks-list" class="list">
+                <!-- Кнопки для задач будут добавляться здесь -->
+            </div>
+        </div>
+        <div class="section">
+            <h2>Здаания 2</h2>
+            <button class="add-button" onclick="window.location.href='/add_task/'">+ Добавить</button>
+            <div id="tasks-list2" class="list">
                 <!-- Кнопки для задач будут добавляться здесь -->
             </div>
         </div>
@@ -91,7 +98,7 @@
         }
 
         // Функция для отображения кнопок задач
-        function renderTasks(tasks) {
+        function renderTasks(tasks, tasks2) {
             const tasksList = document.getElementById('tasks-list');
             tasksList.innerHTML = ''; // Очистить перед добавлением новых
             tasks.forEach(task => {
@@ -100,15 +107,24 @@
                 button.onclick = () => window.location.href = `/edit_task/${task.id}`;
                 tasksList.appendChild(button);
             });
+            const tasksList2 = document.getElementById('tasks-list2');
+            tasksList2.innerHTML = ''; // Очистить перед добавлением новых
+            tasks2.forEach(task2 => {
+                const button = document.createElement('button');
+                button.textContent = task2.name;
+                button.onclick = () => window.location.href = `/edit_task2/${task2.id}`;
+                tasksList2.appendChild(button);
+            });
         }
 
 
         // Загружаем данные при загрузке страницы
         document.addEventListener('DOMContentLoaded', function() {
             const attractionsData = JSON.parse('{{ attractions|safe }}');
-            const tasksData = JSON.parse('{{ tasks|safe }}');
+            const tasksData = JSON.parse('{{ tasks1|safe }}');
+            const tasksData2 = JSON.parse('{{ tasks2|safe }}');
             renderAttractions(attractionsData);
-            renderTasks(tasksData);
+            renderTasks(tasksData, tasksData2);
         });
     </script>
 </body>

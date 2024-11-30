@@ -6,7 +6,7 @@
     <title>Добавить задание</title>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/3.0.1/js.cookie.min.js"></script>
-        <style>
+    <style>
         /* Стили для кнопки возврата */
         .back-button {
             display: inline-block;
@@ -30,34 +30,81 @@
             text-align: left;
         }
 
+        /* Стили для двух столбцов */
+        .form-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-column {
+            flex: 1;
+        }
+
+        /* Стили для раздела с полями task2 */
+        .task2-column input[type="file"] {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
-    <h1>Добавить задание</h1>
+
     <form id="add-task-form" enctype="multipart/form-data">
-        <label for="name">Название:</label>
-        <input type="text" id="name" name="name" required><br>
+        <div class="form-container">
+            <!-- Первый столбец -->
+            <div class="form-column">
+                <h1>Добавить задание 1</h1>
+                <label for="name">Название:</label>
+                <input type="text" id="name" name="name"><br>
 
-        <label for="description">Описание:</label>
-        <textarea id="description" name="description"></textarea><br>
+                <label for="description">Описание:</label>
+                <textarea id="description" name="description"></textarea><br>
 
-        <label for="longitude">Долгота:</label>
-        <input type="text" id="longitude" name="longitude"><br>
+                <label for="inf_aft_complete">Информация после выполнения:</label>
+                <textarea id="inf_aft_complete" name="inf_aft_complete"></textarea><br>
 
-        <label for="latitude">Широта:</label>
-        <input type="text" id="latitude" name="latitude"><br>
+                <label for="latitude">Широта:</label>
+                <input type="text" id="latitude" name="latitude"><br>
 
-        <label for="files">Файлы:</label>
-        <input type="file" id="files" name="files" multiple><br>
+                <label for="longitude">Долгота:</label>
+                <input type="text" id="longitude" name="longitude"><br>
 
-        <button type="submit">Добавить</button>
+                <label for="files">Файлы:</label>
+                <input type="file" id="files" name="files" multiple><br>
+            </div>
 
+            <!-- Второй столбец для task2 -->
+            <div class="form-column task2-column">
+                <h1>Добавить задание 2</h1>
+                <label for="task2-name">Название для task2:</label>
+                <input type="text" id="task2-name" name="task2-name"><br>
+
+                <label for="task2-inf_aft_complete">Информация после выполнения для task2:</label>
+                <textarea id="task2-inf_aft_complete" name="task2-inf_aft_complete"></textarea><br>
+
+                <label for="rating">Рейтинг:</label>
+                <input type="number" id="rating" name="rating" min="1" step="1"><br>
+
+                <label for="required_time">Необходимое время (в секундах):</label>
+                <input type="number" id="required_time" name="required_time" min="0" step="1"><br>
+
+                <label for="parts">Количество частей(квадрат числа):</label>
+                <input type="number" id="parts" name="parts" value="{{ task.parts }}" min="0" step="1"><br>
+
+
+
+                <label for="image">Изображение для task2:</label>
+                <input type="file" id="image" name="image" accept="image/*"><br>
+            </div>
+        </div>
+
+        <button type="submit" style="margin-top: 5vh;" class="back-button">Добавить</button>
     </form>
 
     <div id="response"></div>
     <div class="container">
         <a href="/admin_page/" class="back-button">На главную</a>
     </div>
+
     <script>
         $(document).ready(function () {
             const csrfToken = Cookies.get('csrftoken');  // Получаем CSRF токен
@@ -65,43 +112,98 @@
             $('#add-task-form').submit(function (e) {
                 e.preventDefault();  // Предотвращаем стандартное поведение формы
 
-                // Собираем данные из формы
+                // Создаем объект FormData для отправки данных
                 const formData = new FormData();
-                formData.append('name', $('#name').val());
-                formData.append('description', $('#description').val());
-                formData.append('longitude', $('#longitude').val());
-                formData.append('latitude', $('#latitude').val());
+                const formDataTask2 = new FormData(); // Для task2
 
-                // Получаем файлы из формы и добавляем их в formData
-                const files = $('#files')[0].files; // Получаем коллекцию файлов
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('files', files[i]); // Добавляем каждый файл в formData
+                // Собираем данные для task 1
+                const name = $('#name').val();
+                if (name) {
+                    formData.append('name', name);
+                    formData.append('description', $('#description').val());
+                    formData.append('inf_aft_complete', $('#inf_aft_complete').val());
+                    formData.append('longitude', $('#longitude').val());
+                    formData.append('latitude', $('#latitude').val());
+
+                    // Добавляем файлы для task 1
+                    const files = $('#files')[0].files;
+                    for (let i = 0; i < files.length; i++) {
+                        formData.append('files', files[i]);
+                    }
                 }
 
-                // Отправляем данные на сервер через AJAX
-                $.ajax({
-                    url: '/add_task/',  // URL для отправки запроса
-                    method: 'POST',
-                    data: formData,  // Используем FormData для отправки файлов
-                    processData: false,  // Не обрабатывать данные
-                    contentType: false,  // Не устанавливать заголовок contentType
-                    headers: {
-                        'X-CSRFToken': csrfToken  // Добавляем CSRF токен в заголовок
-                    },
-                    success: function (response) {
-                        $('#response').html(`<p>${response.message}</p>`);
-                    },
-                    error: function (jqXHR) {
-                        let errorMessage = 'Произошла ошибка';
-                        if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
-                            errorMessage = jqXHR.responseJSON.error;
-                        }
+                // Собираем данные для task 2
+                const task2Name = $('#task2-name').val();
+                if (task2Name) {
+                    formDataTask2.append('name', task2Name);
+                    formDataTask2.append('inf_aft_complete', $('#task2-inf_aft_complete').val());
+                    formDataTask2.append('rating', $('#rating').val());
+                    formDataTask2.append('required_time', $('#required_time').val());
+                    formDataTask2.append('parts', $('#parts').val());
 
-                        $('#response').html(`<p style="color:red;">${errorMessage}</p>`);
+                    // Добавляем изображение для task 2
+                    const task2Image = $('#image')[0].files[0];
+                    if (task2Image) {
+                        formDataTask2.append('image', task2Image);
                     }
-                });
+                }
+
+                // Отправляем данные для task 1, если есть
+                if (name) {
+                    $.ajax({
+                        url: '/add_task/',  // URL для отправки запроса task 1
+                        method: 'POST',
+                        data: formData,  // Используем FormData для отправки файлов
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRFToken': csrfToken  // Добавляем CSRF токен в заголовок
+                        },
+                        success: function (response) {
+                            $('#response').html('<p>' + response.message + '</p>');
+
+                            // Очищаем поля после успешной отправки
+                            $('#add-task-form')[0].reset();
+                        },
+                        error: function (jqXHR) {
+                            let errorMessage = 'Произошла ошибка';
+                            if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                                errorMessage = jqXHR.responseJSON.error;
+                            }
+                            $('#response').html('<p style="color:red;">' + errorMessage + '</p>');
+                        }
+                    });
+                }
+
+                // Отправляем данные для task 2, если есть
+                if (task2Name) {
+                    $.ajax({
+                        url: '/add_task2/',  // URL для отправки запроса task 2
+                        method: 'POST',
+                        data: formDataTask2,  // Используем FormData для отправки файлов
+                        processData: false,
+                        contentType: false,
+                        headers: {
+                            'X-CSRFToken': csrfToken  // Добавляем CSRF токен в заголовок
+                        },
+                        success: function (response) {
+                            $('#response').html('<p>' + response.message + '</p>');
+
+                            // Очищаем поля после успешной отправки
+                            $('#add-task-form')[0].reset();
+                        },
+                        error: function (jqXHR) {
+                            let errorMessage = 'Произошла ошибка';
+                            if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                                errorMessage = jqXHR.responseJSON.error;
+                            }
+                            $('#response').html('<p style="color:red;">' + errorMessage + '</p>');
+                        }
+                    });
+                }
             });
         });
+
     </script>
 </body>
 </html>

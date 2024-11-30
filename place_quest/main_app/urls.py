@@ -22,7 +22,18 @@ urlpatterns = [
     path('delete_attr_file/<int:id>/', views.delete_attr_file, name='delete_attr_file'),
     path('attr/<int:id>/', views.attr, name='attr'),
     path('task/<int:id>/', views.task, name='task'),
+    path('pass_task/', views.pass_task, name='pass_task'),
+    path('pass_task2/', views.pass_task2, name='pass_task2'),
+    path('rating/', views.rating_table, name='rating_table'),
+    path('assistant/', views.assistant, name='assistant'),
     path('game', views.game, name='game'),
+    path('game2', views.game2, name='game2'),
+    path('edit_task2/<int:id>/', views.edit_task2, name='edit_task2'),
+    path('add_task2/', views.add_task2, name='add_task2'),
+    path('delete_task_file2/<int:id>/', views.delete_task_file2, name='delete_task_file2'),
+    path('delete_task2/<int:id>/', views.delete_task2, name='delete_task2'),
+    path('delete_task/<int:id>/', views.delete_task, name='delete_task'),
+    path('delete_attr/<int:id>/', views.delete_attr, name='delete_attr'),
 
     path('logout', views.logout_view, name='logout')
 ]

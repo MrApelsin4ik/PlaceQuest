@@ -42,6 +42,8 @@
       align-items: center;
     }
 
+
+
     .logo {
       width: 80px;
     }
@@ -60,6 +62,7 @@
       margin: 0 auto;
       display: flex;
       align-items: center;
+      margin-top:-3vh;
     }
 
     .search-bar input {
@@ -70,6 +73,7 @@
       background-color: var(--white);
       color: var(--dark-gray);
       font-size: 16px;
+
     }
 
     .search-bar button {
@@ -83,6 +87,16 @@
       font-size: 24px;
       cursor: pointer;
       color: var(--dark-gray);
+      margin-top:-3vh;
+    }
+
+    .filter-icon {
+      position: absolute;
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--dark-gray);
+      margin-top:6%;
+      z-index: 1000;
     }
 
     .search-bar input:focus {
@@ -93,7 +107,7 @@
       background-color: #f5f5f5;
     }
 
-    .menu-icon:hover {
+    .menu-icon:hover,.filter-icon:hover {
       color: var(--primary-red);
     }
 
@@ -117,11 +131,11 @@
     }
 
     /* Disable hover effect on attraction items when menu is open */
-    .no-hover .attraction:hover {
-      transform: none;
-      box-shadow: none;
-      z-index: auto; /* Prevent attraction items from overlapping */
-    }
+body.no-hover .attraction:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  z-index: auto !important;
+}
 
     .attraction:hover {
       transform: scale(1.05);  /* Легкое увеличение при наведении */
@@ -185,32 +199,99 @@
     .menu-overlay button:hover {
       background-color: #a31f1f;
     }
+    /* Filter overlay styles */
+    .filter-overlay {
+      position: fixed;
+      top: 0;
+      left: -250px; /* Initially hidden off-screen */
+      width: 250px;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent background */
+      border-top-right-radius: 20px;
+      border-bottom-right-radius: 20px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      transition: left 0.3s ease;
+      z-index:1100;
+    }
 
+    .filter-overlay form {
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      flex-grow: 1; /* This ensures that the form grows to fill the space */
+    }
+
+    .filter-overlay button {
+      width: 100%;
+      padding: 10px;
+      background-color: var(--primary-red);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: auto; /* Push the button to the bottom */
+    }
+
+    .filter-overlay button:hover {
+      background-color: #a31f1f;
+    }
+    .filter-icon img{
+      width: 60% !important;
+      height: 60% !important;
+      margin-top:20%;
+    }
   </style>
 </head>
 <body>
 
+
   <header class="header">
     <!-- Logo (Links to the homepage) -->
-    <div class="logo"><a href="/">Logo</a></div>
+    <div class="logo"><a href="/"><svg width="210.7 " height="92.95" viewBox="0 0 324 143" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M11.8725 74.6754H0V29.951H23.2664C25.2801 29.951 27.204 30.2305 29.0382 30.7896C30.8923 31.3486 32.5272 32.1976 33.9427 33.3364C35.3582 34.4545 36.4847 35.8729 37.322 37.5914C38.1793 39.2893 38.6079 41.2874 38.6079 43.5857C38.6079 45.0352 38.4086 46.4017 38.0098 47.6855C37.6111 48.9485 37.0529 50.108 36.3351 51.164C35.6374 52.22 34.81 53.1725 33.853 54.0214C32.896 54.8703 31.8493 55.5847 30.7129 56.1645C29.5765 56.7443 28.3703 57.1894 27.0943 57.5C25.8383 57.8106 24.5623 57.9659 23.2664 57.9659H11.8725V74.6754ZM26.586 43.5857C26.586 40.7076 25.8782 38.4507 24.4627 36.815C23.0671 35.1585 20.9538 34.3303 18.1227 34.3303H11.8725V53.7419H18.1227C19.6379 53.7419 20.9239 53.4934 21.9805 52.9965C23.0571 52.4788 23.9343 51.7645 24.6122 50.8535C25.2901 49.9424 25.7885 48.876 26.1075 47.6544C26.4265 46.4121 26.586 45.0558 26.586 43.5857ZM53.9492 74.401H43.8629H37.7921L38.6187 73.3761L43.9909 73.4046V72.9206L39.032 72.9024L39.4453 72.4081H45.4264V71.9151H39.9238L40.3425 71.3905L46.3834 71.4179V70.9484C44.1878 70.9376 42.9568 70.9315 40.7611 70.9208L41.5985 69.9264H43.8586V55.5213L46.3834 52.0317H43.8414V22.0311L47.8188 22L48.7758 29.7025L51.1682 34.175V27.9633L53.9492 32.9326V38.6202L51.6467 42.0969H52.8017H53.3773H53.6706H53.8206H53.9492V69.9231H55.9531L60.738 74.401H53.9492ZM106.374 86.6019L95.1293 93C93.913 91.9231 92.7067 90.7017 91.5105 89.3351C90.3344 87.9894 89.218 86.5607 88.1611 85.049C87.1046 83.5373 86.1375 81.9744 85.2605 80.3594C84.3834 78.7443 83.6556 77.1392 83.0776 75.5451C79.8674 75.3999 76.897 74.7688 74.1653 73.6507C71.4341 72.5117 69.0718 70.938 67.0779 68.9296C65.1042 66.9211 63.5491 64.5192 62.4127 61.724C61.2964 58.908 60.738 55.7504 60.738 52.2511C60.738 48.5862 61.3261 45.3147 62.5027 42.4366C63.6989 39.5378 65.3434 37.0945 67.4368 35.1067C69.5503 33.0983 72.0523 31.566 74.9433 30.5101C77.8339 29.4333 80.9837 28.895 84.3934 28.895C87.8022 28.895 90.9526 29.4333 93.8436 30.5101C96.7341 31.566 99.2266 33.0983 101.319 35.1067C103.433 37.0945 105.078 39.5378 106.254 42.4366C107.45 45.3147 108.048 48.5862 108.048 52.2511C108.048 55.3362 107.61 58.1522 106.733 60.699C105.856 63.2458 104.619 65.4924 103.024 67.4388C101.449 69.3851 99.5653 71.0002 97.3719 72.2841C95.179 73.5677 92.767 74.4786 90.1353 75.0173C91.2516 76.2388 92.4674 77.419 93.7833 78.5575C95.0991 79.6965 96.4552 80.7629 97.8504 81.7568C99.2663 82.7507 100.692 83.6511 102.127 84.4591C103.583 85.287 104.998 86.0016 106.374 86.6019ZM95.9666 52.2511C95.9666 50.8845 95.9068 49.4869 95.7872 48.0582C95.6676 46.6295 95.4484 45.2422 95.1293 43.8963C94.8101 42.5505 94.3718 41.2874 93.8134 40.1072C93.2751 38.9269 92.5775 37.902 91.72 37.0324C90.8626 36.142 89.8262 35.4484 88.6099 34.9514C87.4137 34.4338 86.0079 34.175 84.3934 34.175C82.7585 34.175 81.333 34.4338 80.1167 34.9514C78.9004 35.4484 77.864 36.1317 77.0066 37.0013C76.1491 37.8709 75.4515 38.8959 74.9132 40.0761C74.3749 41.2563 73.9462 42.5194 73.6275 43.8653C73.3279 45.1904 73.1189 46.5777 72.9992 48.0271C72.8796 49.4558 72.8198 50.8638 72.8198 52.2511C72.8198 53.6177 72.8796 55.0153 72.9992 56.444C73.1189 57.8727 73.338 59.26 73.6572 60.6059C73.9763 61.931 74.4045 63.1837 74.9433 64.364C75.5012 65.5442 76.2089 66.5794 77.0664 67.4698C77.9238 68.3395 78.9502 69.0331 80.1464 69.5507C81.3627 70.0684 82.7781 70.3272 84.3934 70.3272C85.9682 70.3272 87.3438 70.0684 88.5199 69.5507C89.6965 69.0124 90.7133 68.2981 91.5708 67.4077C92.4277 66.4967 93.1354 65.451 93.6938 64.2708C94.2718 63.0698 94.7206 61.8068 95.0398 60.4816C95.3786 59.1358 95.6178 57.7588 95.7575 56.3508C95.8968 54.9429 95.9666 53.5763 95.9666 52.2511ZM128.115 29.951C127.577 31.6282 127.108 33.3674 126.709 35.1688C126.311 36.9495 125.982 38.7406 125.722 40.542C125.463 42.3227 125.264 44.0827 125.124 45.822C125.005 47.5612 124.945 49.2073 124.945 50.7603C124.945 51.8991 124.945 53.1828 124.945 54.6115C124.965 56.0195 125.045 57.4586 125.184 58.9287C125.344 60.3988 125.593 61.8379 125.932 63.2458C126.271 64.6331 126.769 65.8755 127.427 66.9729C128.105 68.0703 128.962 68.9503 129.999 69.6129C131.056 70.2754 132.362 70.6067 133.917 70.6067C135.292 70.6067 136.469 70.3686 137.445 69.8924C138.442 69.3954 139.28 68.7329 139.957 67.9046C140.655 67.0764 141.204 66.124 141.602 65.0472C142.021 63.9705 142.34 62.8421 142.559 61.6618C142.799 60.4816 142.948 59.2911 143.008 58.0901C143.088 56.8685 143.128 55.7089 143.128 54.6115V29.951H155V52.6859C155 55.9367 154.501 58.9598 153.505 61.755C152.508 64.5503 151.102 66.9832 149.288 69.0538C147.474 71.1037 145.281 72.7185 142.709 73.8992C140.137 75.0586 137.286 75.6385 134.156 75.6385C132.003 75.6385 129.999 75.3175 128.145 74.6754C126.291 74.0542 124.586 73.195 123.031 72.0973C121.496 70.9794 120.12 69.6646 118.904 68.1531C117.708 66.6209 116.701 64.9541 115.884 63.1527C115.086 61.3513 114.478 59.4567 114.06 57.4689C113.641 55.4605 113.452 53.4313 113.491 51.3814V50.7603C113.511 49.1038 113.671 47.3956 113.97 45.6356C114.269 43.8549 114.667 42.0742 115.166 40.2935C115.684 38.5128 116.302 36.7528 117.02 35.0136C117.738 33.2535 118.535 31.566 119.413 29.951H128.115Z" fill="#A72424"/>
+</svg>
+</a></div>
 
     <!-- Search bar -->
-    <div class="search-bar">
+    <div class="search-bar" >
       <input type="text" id="search-input" placeholder="Поиск...">
       <button class="search-icon">&#128269;</button>
     </div>
 
     <!-- Menu icon (Expandable menu on smaller screens) -->
     <div class="menu-icon">&#9776;</div>
+    <div class="filter-icon" ><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAYAAAAeP4ixAAAACXBIWXMAAAsTAAALEwEAmpwYAAAB/klEQVR4nO2ZO0gcURSGv3U3ImGbbUQFxRQKSWHANBF8FDEQbGKjVWySTgsxVdAmpZ2pTBULsbMSC7GICBJioY1VwBQRhYiCaIwvfNwwcCbcRnd2d2b2jNwPplnu+c/591xm7z0LDt0sASYhz8pdRkzCnlvJu0AJJqiRHHrJBTHyTRZ8B7LoIyu1eTWu37WwGvghC78CVeihEliQ2jaB2nwB9cAvCZgDHlB+0sCs1LQNNAYNbAJ+S+AMUEH5SAFTUsse8LhQgRbgQASmRDBuUsBnqeEQaC1W6DlwLEKfiJ9xyX0CdJQq9gI4E8FR4mNMcl4Ar8ISfQ1civB7omdIcl0BfWGLvwGugRvgHdExYOV5G1WSQeub6o9Av9fq/AgRM2rt3Z4QdbuBc9H+QMxvk1OgMwS9NuvtOEHM7/dJSXwEPCtB66n1ezVJGfDMfJEC9oEnRWg0A7saThBp6wy0AzwqILYB2LLOdBkUnUp/AnUBYtSesh/KHbrQq+qqxntPrggjam+iJuCdX/1swDgjyjCuI8owriPKMK4jyjCuI8owriPKMK4jyjD3rSPtAdepZVkK9Mad00BNUo1kgGGZdXmF/gU+yoAiUUZ8aqQjN1KwNzF5mUQjPt44dcMqfF7+o0ycEX+7jVjb7U9Sjdy23RJrxKcLWAMW/3/iuIf8A6CVNVOPYxZnAAAAAElFTkSuQmCC" alt="filter--v1"></div>
   </header>
 
   <!-- Menu overlay (Initially hidden) -->
   <div class="menu-overlay" id="menu-overlay">
     <a href="/" class="menu-button"><button>Домой</button></a>
-    <a href="/game" class="menu-button"><button>Игра</button></a>
+    <a href="/game" class="menu-button"><button>Игра (гео)</button></a>
+    <a href="/game2" class="menu-button"><button>Игра (пазл)</button></a>
     <a href="/rating" class="menu-button"><button>Рейтинг</button></a>
-    <a href="/assistant" class="menu-button"><button>Помощник</button></a>
+    <a href="/assistant" class="menu-button" style="margin-bottom: 40vh;"><button>Помощник</button></a>
     <a href="/logout" class="menu-button"><button>Выйти</button></a>
+  </div>
+  <!-- Filter overlay (Initially hidden) -->
+  <div class="filter-overlay" id="filter-overlay">
+    <!-- Фильтры будут загружаться здесь -->
+    <form>
+      {% for key, filters in grouped_filters.items %}
+          <div class="filter-group">
+              <h4>{{ key }}</h4>
+              {% for filter in filters %}
+                  <label>
+                      <input type="checkbox" name="filters[]"  value="{{ filter.id }}"> {{ filter.value }}
+                  </label>
+              {% endfor %}
+          </div>
+      {% endfor %}
+      <button type="button" id="apply-filters">Применить фильтры</button>
+    </form>
   </div>
 
   <!-- Main content area (Empty for now, just focusing on search functionality) -->
@@ -223,28 +304,36 @@
     const limit = 100;  // Количество элементов на скролл
     const attractionList = document.getElementById('attraction-list');
     const searchInput = document.getElementById('search-input');
+
     let attractionsData = [];
 
-    // Функция для загрузки attr
-    function loadAttractions() {
-      if (!attractionList) {
-        console.error("Attraction list element not found.");
-        return;
-      }
 
-      fetch(`/?start=${start}`, {
-        method: 'GET',
-        headers: {
-          'X-Requested-With': 'XMLHttpRequest'
-        }
-      })
-      .then(response => response.json())
-      .then(data => {
-        attractionsData = data.attractions;  // Сохраняем attr в массив
-        displayAttractions(attractionsData);  // Отображаем все attr
-        start += limit;
-      })
-      .catch(error => console.error('Error fetching attractions:', error));
+    // Функция для загрузки attr
+    function loadAttractions(filters = []) {
+        const start = 0;
+        const limit = 100;
+
+        // Если фильтры не выбраны, не передаем параметр 'filters[]'
+        const url = filters.length ? `/?start=${start}&filters[]=${filters.join('&filters[]=')}` : `/?start=${start}`;
+
+        fetch(url, {
+          method: 'GET',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          attractionsData = data.attractions;
+          displayAttractions(data.attractions);
+        })
+        .catch(error => {
+          console.error('Error fetching attractions:', error);
+          // Обработка ошибки если ответ не JSON
+          if (error instanceof SyntaxError) {
+            alert('Ошибка загрузки данных. Попробуйте позже.');
+          }
+        });
     }
 
     // Функция для отображения attr
@@ -281,15 +370,31 @@
 
     // Начальная загрузка attr
     loadAttractions();
-  });
-  document.addEventListener("DOMContentLoaded", function() {
+
+
       const menuIcon = document.querySelector('.menu-icon');
       const menuOverlay = document.getElementById('menu-overlay');
       const body = document.body;
+      const filterIcon = document.querySelector('.filter-icon');
+      const filterOverlay = document.getElementById('filter-overlay');
+      const applyFiltersButton = document.getElementById('apply-filters');
+
+      // Функция применения фильтров
+      applyFiltersButton.addEventListener('click', function() {
+        const selectedFilters = [];
+        const checkboxes = document.querySelectorAll('input[name="filters[]"]:checked');
+        checkboxes.forEach((checkbox) => {
+          selectedFilters.push(checkbox.value);
+        });
+
+        // Если фильтры выбраны, загружаем аттракционы с примененными фильтрами
+        loadAttractions(selectedFilters);
+      });
 
       // Toggle menu visibility
       menuIcon.addEventListener('click', function() {
         const isMenuVisible = menuOverlay.style.right === '0px';
+
         menuOverlay.style.right = isMenuVisible ? '-250px' : '0px';
 
         // Toggle hover effect for main content
@@ -302,12 +407,40 @@
 
       // Close menu if clicked outside
       document.addEventListener('click', function(event) {
-        if (!menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
+        const isFilterVisible = filterOverlay.style.left === '0px';
+        if (!isFilterVisible && !menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
           menuOverlay.style.right = '-250px';
           body.classList.remove('no-hover'); // Enable hover effects when menu is closed
         }
       });
+
+      // Toggle filter overlay visibility
+      filterIcon.addEventListener('click', function() {
+        const isFilterVisible = filterOverlay.style.left === '0px';
+        filterOverlay.style.left = isFilterVisible ? '-250px' : '0px';
+
+        // Toggle hover effect for main content
+        if (!isFilterVisible) {
+          body.classList.add('no-hover'); // Disable hover effects
+        } else {
+          body.classList.remove('no-hover'); // Enable hover effects
+        }
+      });
+
+    // Close menu and filter overlays if clicked outside
+    document.addEventListener('click', function(event) {
+      const isFilterVisible = filterOverlay.style.left === '0px';
+      const isMenuVisible = menuOverlay.style.right === '0px';
+      if (!isFilterVisible && !menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
+        menuOverlay.style.right = '-250px';
+        body.classList.remove('no-hover');
+      }
+      else if (!isMenuVisible && !filterOverlay.contains(event.target) && !filterIcon.contains(event.target)) {
+        filterOverlay.style.left = '-250px';
+        body.classList.remove('no-hover');
+      }
     });
+  });
 </script>
 
 </body>

@@ -39,42 +39,38 @@
         <label for="name">Название:</label>
         <input type="text" id="name" name="name" value="{{ task.name }}" required><br>
 
-        <label for="description">Описание:</label>
-        <textarea id="description" name="description">{{ task.description }}</textarea><br>
-
         <label for="inf_aft_complete">Информация после выполнения:</label>
         <textarea id="inf_aft_complete" name="inf_aft_complete">{{ task.inf_aft_complete }}</textarea><br>
 
+        <label for="rating">Рейтинг:</label>
+        <input type="number" id="rating" name="rating" value="{{ task.rating }}" min="1" step="1"><br>
 
-        <label for="latitude">Широта:</label>
-        <input type="text" id="latitude" name="latitude" value="{{ task.latitude }}"><br>
-        <label for="longitude">Долгота:</label>
-        <input type="text" id="longitude" name="longitude" value="{{ task.longitude }}"><br>
+        <label for="required_time">Необходимое время (в секундах):</label>
+        <input type="number" id="required_time" name="required_time" value="{{ task.required_time }}" min="0" step="1"><br>
 
-        <h3>Файлы:</h3>
-        <ul id="file-list">
-            {% for file in task.files.all %}
-                <li>
-                    <a href="{{ file.file.url }}" target="_blank">{{ file.file.name }}</a>
-                    <button type="button" class="delete-file" data-file-id="{{ file.id }}">Удалить</button>
-                </li>
-            {% endfor %}
-        </ul>
+        <label for="parts">Количество частей(квадрат числа):</label>
+        <input type="number" id="parts" name="parts" value="{{ task.parts }}" min="0" step="1"><br>
 
-        <label for="files">Добавить новые файлы:</label>
-        <input type="file" id="files" name="files" multiple><br>
 
+        <h3>Изображение:</h3>
+        {% if task.image %}
+            <p>Текущее изображение: <img src="{{ task.image.url }}" alt="Изображение" width="100"></p>
+            <button type="button" class="delete-file" data-task-id="{{ task.id }}">Удалить изображение</button>
+        {% endif %}
+
+        <label for="task2-image">Новое изображение:</label>
+        <input type="file" id="task2-image" name="image" accept="image/*"><br>
         <button type="submit">Сохранить</button>
         <button type="button" class="delete-task" data-task-id="{{ task.id }}" style='margin-top:10vh;'>Удалить задание</button>
+
     </form>
 
     <div id="response"></div>
     <div class="container">
         <a href="/admin_page/" class="back-button">На главную</a>
     </div>
-
-    <script>
-        $(document).ready(function () {
+<script>
+    $(document).ready(function () {
             const csrfToken = Cookies.get('csrftoken'); // CSRF токен
 
             // Обработка удаления задания
@@ -82,7 +78,7 @@
                 const taskId = $(this).data('task-id');
 
                 $.ajax({
-                    url: `/delete_task/{{ task.id }}/`,
+                    url: `/delete_task2/{{ task.id }}/`,
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken
@@ -96,22 +92,23 @@
                 });
             });
 
-            // Обработка удаления файла
+
+
+            // Обработка удаления изображения
             $('.delete-file').click(function () {
-                const fileId = $(this).data('file-id');
-                const fileElement = $(this).parent();
+                const taskId = $(this).data('task-id');
 
                 $.ajax({
-                    url: `/delete_task_file/${fileId}/`,
+                    url: `/delete_task_file2/{{ task.id }}/`,
                     method: 'POST',
                     headers: {
                         'X-CSRFToken': csrfToken
                     },
                     success: function () {
-                        fileElement.remove();
+                        location.reload(); // Перезагружаем страницу, чтобы обновить данные
                     },
                     error: function () {
-                        alert('Ошибка при удалении файла');
+                        alert('Ошибка при удалении изображения');
                     }
                 });
             });
@@ -120,27 +117,12 @@
             $('#edit-task-form').submit(function (e) {
                 e.preventDefault();
 
-                // Преобразуем запятую в точку для долготы и широты
-                const longitude = $('#longitude').val().replace(',', '.');
-                const latitude = $('#latitude').val().replace(',', '.');
-
                 // Собираем данные из формы
-                const formData = new FormData();
-                formData.append('name', $('#name').val());
-                formData.append('description', $('#description').val());
-                formData.append('inf_aft_complete', $('#inf_aft_complete').val());
-                formData.append('longitude', longitude);
-                formData.append('latitude', latitude);
-
-                // Добавляем новые файлы
-                const files = $('#files')[0].files;
-                for (let i = 0; i < files.length; i++) {
-                    formData.append('files', files[i]);
-                }
+                const formData = new FormData(this);
 
                 // Отправляем данные на сервер
                 $.ajax({
-                    url: `/edit_task/{{ task.id }}/`,
+                    url: `/edit_task2/{{ task.id }}/`,
                     method: 'POST',
                     data: formData,
                     processData: false,

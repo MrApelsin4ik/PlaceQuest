@@ -42,6 +42,13 @@
         <label for="description">Описание:</label>
         <textarea id="description" name="description">{{ attr.description }}</textarea><br>
 
+        <label for="filters">Фильтры:</label><br>
+        {% for filter in available_filters %}
+            <input type="checkbox" id="filter_{{ filter.id }}" name="filters" value="{{ filter.id }}"
+            {% if filter in attr.filters.all %} checked {% endif %}>
+            <label for="filter_{{ filter.id }}">{{ filter.key }} - {{ filter.value }}</label><br>
+        {% endfor %}
+
         <h3>Файлы:</h3>
         <ul id="file-list">
             {% for file in attr.files.all %}
@@ -56,6 +63,7 @@
         <input type="file" id="files" name="files" multiple><br>
 
         <button type="submit">Сохранить</button>
+        <button type="button" class="delete-task" data-task-id="{{ attr.id }}" style='margin-top:10vh;'>Удалить</button>
     </form>
 
     <div id="response"></div>
@@ -66,6 +74,25 @@
     <script>
         $(document).ready(function () {
             const csrfToken = Cookies.get('csrftoken'); // CSRF токен
+
+            // Обработка удаления задания
+            $('.delete-task').click(function () {
+                const taskId = $(this).data('task-id');
+
+                $.ajax({
+                    url: `/delete_attr/{{ attr.id }}/`,
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken
+                    },
+                    success: function () {
+                        window.location.href = '/admin_page/'; // Перенаправляем на главную после удаления
+                    },
+                    error: function () {
+                        alert('Ошибка при удалении задания');
+                    }
+                });
+            });
 
             // Обработка удаления файла
             $('.delete-file').click(function () {
@@ -101,6 +128,17 @@
                 for (let i = 0; i < files.length; i++) {
                     formData.append('files', files[i]);
                 }
+
+                // Получаем выбранные фильтры
+                const selectedFilters = [];
+                $('input[name="filters"]:checked').each(function () {
+                    selectedFilters.push($(this).val());
+                });
+
+                // Добавляем выбранные фильтры в formData
+                selectedFilters.forEach(function (filterId) {
+                    formData.append('filters', filterId);
+                });
 
                 // Отправляем данные на сервер
                 $.ajax({

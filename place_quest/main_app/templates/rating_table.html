@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Main Page</title>
+  <style>
+    /* Resetting some default styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Variables for colors */
+    :root {
+      --primary-red: #8B1D1D;
+      --background-color: #E8E3D7;
+      --white: #FFFFFF;
+      --dark-gray: #333333;
+    }
+
+    body {
+      background-color: var(--background-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Header container */
+    .header {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      width: 100%;
+      height: 64px;
+      background-color: var(--background-color);
+      padding: 0 16px;
+      align-items: center;
+    }
+
+    .logo {
+      width: 80px;
+    }
+
+    .logo a {
+      text-decoration: none;
+      color: var(--dark-gray);
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+
+
+    .search-bar input {
+      width: calc(100% - 30px);
+      padding: 8px 12px;
+      border: none;
+      border-radius: 4px;
+      background-color: var(--white);
+      color: var(--dark-gray);
+      font-size: 16px;
+    }
+
+    .search-bar button {
+      padding: 8px;
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+    }
+
+    .menu-icon {
+      font-size: 24px;
+      cursor: pointer;
+      color: var(--dark-gray);
+      margin-left: 98%;
+    }
+
+    .search-bar input:focus {
+      outline: 2px solid var(--primary-red);
+    }
+
+    .search-bar input:hover {
+      background-color: #f5f5f5;
+    }
+
+    .menu-icon:hover {
+      color: var(--primary-red);
+    }
+
+
+    .main-content {
+      margin-top: 64px;
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .table-container {
+      margin: 20px 0;
+    }
+
+    .table-box {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      text-transform: uppercase;
+      font-size: 14px;
+      color: #555;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    td {
+      font-size: 16px;
+      color: #333;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    td:first-child {
+      text-align: left;
+    }
+
+    td:last-child {
+      text-align: right;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .header {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        padding: 8px;
+      }
+
+      .search-bar {
+        max-width: 100%;
+      }
+
+      .menu-icon {
+        display: block;
+        margin-left: auto;
+      }
+    }
+    /* Menu overlay styles */
+    .menu-overlay {
+      position: fixed;
+      top: 0;
+      right: -250px; /* Initially hidden off-screen */
+      width: 250px;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black */
+      border-top-left-radius: 20px;
+      border-bottom-left-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+      align-items: center;
+      padding-top: 30px;
+      transition: right 0.3s ease;
+    }
+
+    .menu-overlay button {
+      padding: 10px 20px;
+      background-color: var(--primary-red);
+      color: var(--white);
+      border: none;
+      border-radius: 5px;
+      margin: 10px 0;
+      cursor: pointer;
+    }
+
+    .menu-overlay button:hover {
+      background-color: #a31f1f;
+    }
+
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <!-- Logo (Links to the homepage) -->
+    <div class="logo"><a href="/">Logo</a></div>
+
+
+    <!-- Menu icon (Expandable menu on smaller screens) -->
+    <div class="menu-icon">&#9776;</div>
+  </header>
+
+  <!-- Menu overlay (Initially hidden) -->
+  <div class="menu-overlay" id="menu-overlay">
+
+    <a href="/" class="menu-button"><button>Домой</button></a>
+    <a href="/game" class="menu-button"><button>Игра (гео)</button></a>
+    <a href="/game2" class="menu-button"><button>Игра (пазл)</button></a>
+    <a href="/rating" class="menu-button"><button>Рейтинг</button></a>
+    <a href="/assistant" class="menu-button" style="margin-bottom: 40vh;"><button>Помощник</button></a>
+    <a href="/logout" class="menu-button"><button>Выйти</button></a>
+  </div>
+
+  <!-- Main content area (Empty for now, just focusing on search functionality) -->
+  <div class="main-content">
+    <!-- Таблица рейтинга -->
+    <h1 style="text-align: center; margin-bottom: 20px;">Рейтинг пользователей</h1>
+
+
+
+    <!-- Все остальные пользователи -->
+    <div class="table-container">
+      <div class="table-box">
+        <table>
+          <thead>
+            <tr>
+              <th>Пользователь</th>
+              <th style="text-align: right;">Рейтинг</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Вы</td>
+              <td>{{ user_rating }}</td>
+            </tr>
+            {% for user in users %}
+            <tr>
+              <td>Пользователь №{{ user.id }}</td>
+              <td>{{ user.rating }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+<script>
+
+  document.addEventListener("DOMContentLoaded", function() {
+      const menuIcon = document.querySelector('.menu-icon');
+      const menuOverlay = document.getElementById('menu-overlay');
+      const body = document.body;
+
+      // Toggle menu visibility
+      menuIcon.addEventListener('click', function() {
+        const isMenuVisible = menuOverlay.style.right === '0px';
+        menuOverlay.style.right = isMenuVisible ? '-250px' : '0px';
+
+        // Toggle hover effect for main content
+        if (!isMenuVisible) {
+          body.classList.add('no-hover'); // Disable hover effects
+        } else {
+          body.classList.remove('no-hover'); // Enable hover effects
+        }
+      });
+
+      // Close menu if clicked outside
+      document.addEventListener('click', function(event) {
+        if (!menuOverlay.contains(event.target) && !menuIcon.contains(event.target)) {
+          menuOverlay.style.right = '-250px';
+          body.classList.remove('no-hover'); // Enable hover effects when menu is closed
+        }
+      });
+    });
+</script>
+
+</body>
+</html>
