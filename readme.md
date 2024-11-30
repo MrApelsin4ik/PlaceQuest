@@ -47,7 +47,7 @@ Once logged in or registered, the main page provides access to all the core feat
 - e.t.c.
 
 ## Demo Video
-Check out the [demo video](<(https://github.com/user-attachments/assets/b0813805-3501-4364-a685-a31d694648d2>) showcasing the prototype of the tool and its features.
+Check out the [demo video](<(https://github.com/user-attachments/assets/b0813805-3501-4364-a685-a31d694648d2)>) showcasing the prototype of the tool and its features.
 
 ## License
 This project is currently freely available for use.
